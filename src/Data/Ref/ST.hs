@@ -10,8 +10,10 @@ module Data.Ref.ST
 
 #ifdef MODULE_Control_Monad_ST_Safe
 import Control.Monad.ST.Safe
+import qualified Control.Monad.ST.Lazy.Safe as Lazy
 #else
 import Control.Monad.ST
+import qualified Control.Monad.ST.Lazy as Lazy
 #endif
 
 import Data.Int
@@ -113,6 +115,91 @@ instance Ref (STURef s) Word32 (ST s) where
   writeRef = writeRef . unSTURef
 
 instance Ref (STURef s) Word64 (ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Bool (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Char (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Int (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Word (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) (Ptr a) (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) (FunPtr a) (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Float (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Double (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) (StablePtr a) (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Int8 (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Int16 (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Int32 (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Int64 (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Word8 (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Word16 (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Word32 (Lazy.ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
+instance Ref (STURef s) Word64 (Lazy.ST s) where
   newRef = fmap STURef . newRef
   readRef = readRef . unSTURef
   writeRef = writeRef . unSTURef
