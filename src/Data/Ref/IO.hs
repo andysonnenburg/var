@@ -24,6 +24,11 @@ newtype IOURef a =
   IOURef { unIOURef :: ByteArrayRef RealWorld a
          } deriving (Eq, Typeable)
 
+instance Ref IOURef Bool IO where
+  newRef = fmap IOURef . newRef
+  readRef = readRef . unIOURef
+  writeRef = writeRef . unIOURef
+
 instance Ref IOURef Char IO where
   newRef = fmap IOURef . newRef
   readRef = readRef . unIOURef

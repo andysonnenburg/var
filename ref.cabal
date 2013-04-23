@@ -25,18 +25,19 @@ library
   hs-source-dirs: src
   exposed-modules:
     Data.Ref
+    Data.Ref.ByteArray
     Data.Ref.Class
     Data.Ref.IO
     Data.Ref.ST
     Data.Ref.Storable
-  other-modules:
-    Data.Ref.ByteArray
   build-depends:
     base >= 4 && < 5,
     transformers
   if flag(strict-modifyRef)
     build-depends: base >= 4.6
     cpp-options: -DFUNCTION_strict_modifyRef
+  if impl(ghc >= 7.2)
+    cpp-options: -DLANGUAGE_DefaultSignatures -DLANGUAGE_Trustworthy
   other-extensions:
     CPP,
     DeriveDataTypeable,

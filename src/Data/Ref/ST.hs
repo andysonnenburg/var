@@ -27,6 +27,11 @@ a value of type @STURef s a@ is an unboxed mutable variable in state thread @s@,
 containing a value of type @a@
 -}
 
+instance Ref (STURef s) Bool (ST s) where
+  newRef = fmap STURef . newRef
+  readRef = readRef . unSTURef
+  writeRef = writeRef . unSTURef
+
 instance Ref (STURef s) Char (ST s) where
   newRef = fmap STURef . newRef
   readRef = readRef . unSTURef

@@ -3,10 +3,11 @@
   , DeriveDataTypeable
   , FlexibleInstances
   , MagicHash
-  , MultiParamTypeClasses
-  , Trustworthy
-  , TypeFamilies
-  , UnboxedTuples #-}
+  , MultiParamTypeClasses #-}
+#ifdef LANGUAGE_Trustworthy
+{-# LANGUAGE Trustworthy #-}
+#endif
+{-# LANGUAGE TypeFamilies, UnboxedTuples #-}
 module Data.Ref.ByteArray
        ( ByteArrayRef
        ) where
@@ -44,6 +45,17 @@ class ByteArrayElem a where
   sizeOf# :: a -> Int#
   readByteArray# :: MutableByteArray# s -> Int# -> State# s -> (# State# s, a #)
   writeByteArray# :: MutableByteArray# s -> Int# -> a -> State# s -> State# s
+
+instance ByteArrayElem Bool where
+  sizeOf# _ = 1#
+  {-# INLINE sizeOf# #-}
+  readByteArray# array i s = case readWord8Array# array i s of
+    (# s', a #) -> (# s', a `neWord#` int2Word# 0# #)
+  {-# INLINE readByteArray# #-}
+  writeByteArray# array i e
+    | e = writeWord8Array# array i (int2Word# 1#)
+    | otherwise = writeWord8Array# array i (int2Word# 0#)
+  {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Char where
   sizeOf# _ = SIZEOF_HSCHAR#
