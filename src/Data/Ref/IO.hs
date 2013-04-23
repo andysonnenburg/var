@@ -1,5 +1,6 @@
 {-# LANGUAGE
-    DeriveDataTypeable
+    CPP
+  , DeriveDataTypeable
   , MultiParamTypeClasses #-}
 module Data.Ref.IO
        ( module Data.Ref.Class
@@ -7,7 +8,11 @@ module Data.Ref.IO
        , IOURef
        ) where
 
+#ifdef MODULE_Control_Monad_ST_Safe
 import Control.Monad.ST.Safe (RealWorld)
+#else
+import Control.Monad.ST (RealWorld)
+#endif
 
 import Data.Int
 import Data.IORef

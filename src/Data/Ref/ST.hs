@@ -1,5 +1,6 @@
 {-# LANGUAGE
-    DeriveDataTypeable
+    CPP
+  , DeriveDataTypeable
   , MultiParamTypeClasses #-}
 module Data.Ref.ST
        ( module Data.Ref.Class
@@ -7,7 +8,11 @@ module Data.Ref.ST
        , STURef
        ) where
 
+#ifdef MODULE_Control_Monad_ST_Safe
 import Control.Monad.ST.Safe
+#else
+import Control.Monad.ST
+#endif
 
 import Data.Int
 import Data.Ref.ByteArray

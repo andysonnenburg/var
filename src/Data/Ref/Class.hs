@@ -7,7 +7,13 @@ module Data.Ref.Class
        ( Ref (..)
        ) where
 
+#ifdef MODULE_Control_Monad_ST_Safe
 import Control.Monad.ST.Safe
+import qualified Control.Monad.ST.Lazy.Safe as Lazy
+#else
+import Control.Monad.ST
+import qualified Control.Monad.ST.Lazy as Lazy
+#endif
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Error
@@ -25,6 +31,7 @@ import qualified Control.Monad.Trans.Writer.Strict as Strict
 import Data.IORef
 import Data.Monoid (Monoid)
 import Data.STRef
+import qualified Data.STRef.Lazy as Lazy
 
 class Monad m => Ref ref a m where
   newRef :: a -> m (ref a)
@@ -65,6 +72,12 @@ instance Ref (STRef s) a (ST s) where
 #ifdef FUNCTION_strict_modifyRef
   modifyRef' = modifySTRef'
 #endif
+
+instance Ref (Lazy.STRef s) a (Lazy.ST s) where
+  newRef = Lazy.newSTRef
+  readRef = Lazy.readSTRef
+  writeRef = Lazy.writeSTRef
+  modifyRef = Lazy.modifySTRef
 
 instance Ref ref a m => Ref ref a (ContT r m) where
 #ifndef LANGUAGE_DefaultSignatures
