@@ -19,6 +19,8 @@ source-repository head
   type: git
   location: git://github.com/sonyandy/ref.git
 
+flag strict-modifyRef
+
 library
   hs-source-dirs: src
   exposed-modules:
@@ -32,6 +34,9 @@ library
   build-depends:
     base >= 4 && < 5,
     transformers
+  if flag(strict-modifyRef)
+    build-depends: base >= 4.6
+    cpp-options: -DFUNCTION_strict_modifyRef
   other-extensions:
     CPP,
     DeriveDataTypeable,

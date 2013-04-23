@@ -18,8 +18,8 @@ newtype StorableRef a =
               } deriving (Show, Eq, Ord, Typeable)
 
 instance Typeable a => Data (StorableRef a) where
-  toConstr _   = error "Data.Data.toConstr(StorableRef)"
-  gunfold _ _  = error "Data.Data.gunfold(StorableRef)"
+  toConstr _ = error "Data.Data.toConstr(StorableRef)"
+  gunfold _ _ = error "Data.Data.gunfold(StorableRef)"
   dataTypeOf _ = mkNoRepType "Data.Ref.Storable.StorableRef"
 
 instance Storable a => Ref StorableRef a IO where

@@ -1,5 +1,6 @@
 {-# LANGUAGE
-    DefaultSignatures
+    CPP
+  , DefaultSignatures
   , FlexibleInstances
   , MultiParamTypeClasses #-}
 module Data.Ref.Class
@@ -18,18 +19,18 @@ class Monad m => Ref ref a m where
   writeRef :: ref a -> a -> m ()
   modifyRef :: ref a -> (a -> a) -> m ()
   modifyRef' :: ref a -> (a -> a) -> m ()
-  
+
   default newRef :: (MonadTrans t, Ref ref a m) => a -> t m (ref a)
   newRef = lift . newRef
-  
+
   default readRef :: (MonadTrans t, Ref ref a m) => ref a -> t m a
   readRef = lift . readRef
-  
+
   default writeRef :: (MonadTrans t, Ref ref a m) => ref a -> a -> t m ()
   writeRef ref = lift . writeRef ref
-  
+
   modifyRef ref f = readRef ref >>= writeRef ref . f
-  
+
   modifyRef' ref f = readRef ref >>= \ a -> writeRef ref $! f a
 
 instance Ref IORef a IO where
@@ -37,11 +38,15 @@ instance Ref IORef a IO where
   readRef = readIORef
   writeRef = writeIORef
   modifyRef = modifyIORef
+#ifdef FUNCTION_strict_modifyRef
   modifyRef' = modifyIORef'
+#endif
 
 instance Ref (STRef s) a (ST s) where
   newRef = newSTRef
   readRef = readSTRef
   writeRef = writeSTRef
   modifyRef = modifySTRef
+#ifdef FUNCTION_strict_modifyRef
   modifyRef' = modifySTRef'
+#endif
