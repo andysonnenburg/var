@@ -50,7 +50,6 @@ library
     FlexibleInstances,
     MagicHash,
     MultiParamTypeClasses,
-    Rank2Types,
     TypeFamilies,
     UnboxedTuples
   ghc-options: -Wall -fwarn-tabs -O2

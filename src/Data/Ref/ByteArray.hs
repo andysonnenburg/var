@@ -50,13 +50,23 @@ instance (ByteArrayElem a, MonadPrim m, s ~ World m) => Ref (ByteArrayRef s) a m
   {-# INLINE writeRef #-}
 
 class ByteArrayElem a where
-  sizeOf# :: a -> Int#
+  size# :: t a -> Int#
   readByteArray# :: MutableByteArray# s -> Int# -> State# s -> (# State# s, a #)
   writeByteArray# :: MutableByteArray# s -> Int# -> a -> State# s -> State# s
 
+sizeOf# :: ByteArrayElem a => a -> Int#
+sizeOf# a = size# (proxy a)
+{-# INLINE sizeOf# #-}
+
+data Proxy a = Proxy
+
+proxy :: a -> Proxy a
+proxy _ = Proxy
+{-# INLINE proxy #-}
+
 instance ByteArrayElem Bool where
-  sizeOf# _ = 1#
-  {-# INLINE sizeOf# #-}
+  size# _ = 1#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readWord8Array# array i s of
     (# s', a #) -> (# s', a `neWord#` int2Word# 0# #)
   {-# INLINE readByteArray# #-}
@@ -66,8 +76,8 @@ instance ByteArrayElem Bool where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Char where
-  sizeOf# _ = SIZEOF_HSCHAR#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSCHAR#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readWideCharArray# array i s of
     (# s', a #) -> (# s', C# a #)
   {-# INLINE readByteArray# #-}
@@ -75,8 +85,8 @@ instance ByteArrayElem Char where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Int where
-  sizeOf# _ = SIZEOF_HSINT#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSINT#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readIntArray# array i s of
     (# s', a #) -> (# s', I# a #)
   {-# INLINE readByteArray# #-}
@@ -84,8 +94,8 @@ instance ByteArrayElem Int where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Word where
-  sizeOf# _ = SIZEOF_HSWORD#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSWORD#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readWordArray# array i s of
     (# s', a #) -> (# s', W# a #)
   {-# INLINE readByteArray# #-}
@@ -93,8 +103,8 @@ instance ByteArrayElem Word where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem (Ptr a) where
-  sizeOf# _ = SIZEOF_HSWORD#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSWORD#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readAddrArray# array i s of
     (# s', a #) -> (# s', Ptr a #)
   {-# INLINE readByteArray# #-}
@@ -102,8 +112,8 @@ instance ByteArrayElem (Ptr a) where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem (FunPtr a) where
-  sizeOf# _ = SIZEOF_HSWORD#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSWORD#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readAddrArray# array i s of
     (# s', a #) -> (# s', FunPtr a #)
   {-# INLINE readByteArray# #-}
@@ -111,8 +121,8 @@ instance ByteArrayElem (FunPtr a) where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Float where
-  sizeOf# _ = SIZEOF_HSFLOAT#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSFLOAT#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readFloatArray# array i s of
     (# s', a #) -> (# s', F# a #)
   {-# INLINE readByteArray# #-}
@@ -120,8 +130,8 @@ instance ByteArrayElem Float where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Double where
-  sizeOf# _ = SIZEOF_HSDOUBLE#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSDOUBLE#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readDoubleArray# array i s of
     (# s', a #) -> (# s', D# a #)
   {-# INLINE readByteArray# #-}
@@ -129,8 +139,8 @@ instance ByteArrayElem Double where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem (StablePtr a) where
-  sizeOf# _ = SIZEOF_HSWORD#
-  {-# INLINE sizeOf# #-}
+  size# _ = SIZEOF_HSWORD#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readStablePtrArray# array i s of
     (# s', a #) -> (# s', StablePtr a #)
   {-# INLINE readByteArray# #-}
@@ -138,8 +148,8 @@ instance ByteArrayElem (StablePtr a) where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Int8 where
-  sizeOf# _ = 1#
-  {-# INLINE sizeOf# #-}
+  size# _ = 1#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readInt8Array# array i s of
     (# s', a #) -> (# s', I8# a #)
   {-# INLINE readByteArray# #-}
@@ -147,8 +157,8 @@ instance ByteArrayElem Int8 where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Int16 where
-  sizeOf# _ = 2#
-  {-# INLINE sizeOf# #-}
+  size# _ = 2#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readInt16Array# array i s of
     (# s', a #) -> (# s', I16# a #)
   {-# INLINE readByteArray# #-}
@@ -156,8 +166,8 @@ instance ByteArrayElem Int16 where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Int32 where
-  sizeOf# _ = 4#
-  {-# INLINE sizeOf# #-}
+  size# _ = 4#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readInt32Array# array i s of
     (# s', a #) -> (# s', I32# a #)
   {-# INLINE readByteArray# #-}
@@ -165,8 +175,8 @@ instance ByteArrayElem Int32 where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Int64 where
-  sizeOf# _ = 8#
-  {-# INLINE sizeOf# #-}
+  size# _ = 8#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readInt64Array# array i s of
     (# s', a #) -> (# s', I64# a #)
   {-# INLINE readByteArray# #-}
@@ -174,8 +184,8 @@ instance ByteArrayElem Int64 where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Word8 where
-  sizeOf# _ = 1#
-  {-# INLINE sizeOf# #-}
+  size# _ = 1#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readWord8Array# array i s of
     (# s', a #) -> (# s', W8# a #)
   {-# INLINE readByteArray# #-}
@@ -183,8 +193,8 @@ instance ByteArrayElem Word8 where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Word16 where
-  sizeOf# _ = 2#
-  {-# INLINE sizeOf# #-}
+  size# _ = 2#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readWord16Array# array i s of
     (# s', a #) -> (# s', W16# a #)
   {-# INLINE readByteArray# #-}
@@ -192,8 +202,8 @@ instance ByteArrayElem Word16 where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Word32 where
-  sizeOf# _ = 4#
-  {-# INLINE sizeOf# #-}
+  size# _ = 4#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readWord32Array# array i s of
     (# s', a #) -> (# s', W32# a #)
   {-# INLINE readByteArray# #-}
@@ -201,8 +211,8 @@ instance ByteArrayElem Word32 where
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Word64 where
-  sizeOf# _ = 8#
-  {-# INLINE sizeOf# #-}
+  size# _ = 8#
+  {-# INLINE size# #-}
   readByteArray# array i s = case readWord64Array# array i s of
     (# s', a #) -> (# s', W64# a #)
   {-# INLINE readByteArray# #-}
