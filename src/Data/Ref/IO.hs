@@ -24,7 +24,9 @@ import Data.Word
 import Foreign.Ptr
 import Foreign.StablePtr
 
--- | An unboxed mutable variable in the 'IO' monad
+{- |
+A mutable variable containing an unboxed value of type @a@ in the 'IO' monad
+-}
 newtype IOURef a =
   IOURef { unIOURef :: ByteArrayRef RealWorld a
          } deriving (Eq, Typeable)

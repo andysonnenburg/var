@@ -30,8 +30,8 @@ newtype STURef s a =
   STURef { unSTURef :: ByteArrayRef s a
          } deriving (Eq, Typeable)
 {- ^
-a value of type @STURef s a@ is an unboxed mutable variable in state thread @s@,
-containing a value of type @a@
+a value of type @'STURef' s a@ is a mutable variable in state thread @s@,
+containing an unboxed value of type @a@
 -}
 
 instance Ref (STURef s) Bool (ST s) where
