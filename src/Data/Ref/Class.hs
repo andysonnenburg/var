@@ -3,6 +3,11 @@
 {-# LANGUAGE DefaultSignatures #-}
 #endif
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{- |
+Copyright   :  (c) Andy Sonnenburg 2013
+License     :  BSD3
+Maintainer  :  andy22286@gmail.com
+-}
 module Data.Ref.Class
        ( Ref (..)
        ) where
@@ -60,7 +65,7 @@ instance Ref IORef a IO where
   readRef = readIORef
   writeRef = writeIORef
   modifyRef = modifyIORef
-#ifdef FUNCTION_strict_modifyRef
+#ifdef FUNCTION_Data_IORef_modifyRef_
   modifyRef' = modifyIORef'
 #endif
 
@@ -69,7 +74,7 @@ instance Ref (STRef s) a (ST s) where
   readRef = readSTRef
   writeRef = writeSTRef
   modifyRef = modifySTRef
-#ifdef FUNCTION_strict_modifyRef
+#ifdef FUNCTION_Data_STRef_modifyRef_
   modifyRef' = modifySTRef'
 #endif
 

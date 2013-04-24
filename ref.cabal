@@ -19,7 +19,7 @@ source-repository head
   type: git
   location: git://github.com/sonyandy/ref.git
 
-flag SafeST
+flag safe-ST
 flag strict-modifyRef
 
 library
@@ -35,12 +35,12 @@ library
   build-depends:
     base >= 4 && < 5,
     transformers
-  if flag(SafeST)
+  if flag(safe-ST)
     build-depends: base >= 4.4
     cpp-options: -DMODULE_Control_Monad_ST_Safe
   if flag(strict-modifyRef)
     build-depends: base >= 4.6
-    cpp-options: -DFUNCTION_strict_modifyRef
+    cpp-options: -DFUNCTION_Data_IORef_modifyRef_ -DFUNCTION_Data_STRef_modifyRef_
   if impl(ghc >= 7.2)
     other-extensions: Trustworthy
     cpp-options: -DLANGUAGE_DefaultSignatures -DLANGUAGE_Trustworthy

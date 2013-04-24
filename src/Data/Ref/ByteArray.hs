@@ -8,6 +8,11 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 {-# LANGUAGE TypeFamilies, UnboxedTuples #-}
+{- |
+Copyright   :  (c) Andy Sonnenburg 2013
+License     :  BSD3
+Maintainer  :  andy22286@gmail.com
+-}
 module Data.Ref.ByteArray
        ( ByteArrayRef
        ) where
@@ -67,12 +72,12 @@ proxy _ = Proxy
 instance ByteArrayElem Bool where
   size# _ = 1#
   {-# INLINE size# #-}
-  readByteArray# array i s = case readWord8Array# array i s of
-    (# s', a #) -> (# s', a `neWord#` int2Word# 0# #)
+  readByteArray# array i s = case readInt8Array# array i s of
+    (# s', a #) -> (# s', a /=# 0# #)
   {-# INLINE readByteArray# #-}
   writeByteArray# array i e
-    | e = writeWord8Array# array i (int2Word# 1#)
-    | otherwise = writeWord8Array# array i (int2Word# 0#)
+    | e = writeInt8Array# array i 1#
+    | otherwise = writeInt8Array# array i 0#
   {-# INLINE writeByteArray# #-}
 
 instance ByteArrayElem Char where
