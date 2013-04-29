@@ -1,11 +1,14 @@
 {-# LANGUAGE
-    FlexibleContexts
+    CPP
+  , FlexibleContexts
   , FlexibleInstances
   , MagicHash
   , MultiParamTypeClasses
-  , Rank2Types
-  , TypeFamilies
-  , UnboxedTuples #-}
+  , Rank2Types #-}
+#ifdef LANGUAGE_Trustworthy
+{-# LANGUAGE Trustworthy #-}
+#endif
+{-# LANGUAGE TypeFamilies, UnboxedTuples #-}
 {- |
 Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
