@@ -1,8 +1,8 @@
-name:                ref
+name:                var
 version:             0.1.0.0
-synopsis:            Mutable references
+synopsis:            Mutable variables
 description:
-  This package defines the class 'Ref' of references mutable within appropriate
+  This package defines the class 'Var' of variables mutable within appropriate
   monads, as well as some instances of this class.
 homepage:            http://github.com/sonyandy/ref
 bug-reports:         http://github.com/sonyandy/ref/issues
@@ -17,7 +17,7 @@ cabal-version:       >= 1.8
 
 source-repository head
   type: git
-  location: git://github.com/sonyandy/ref.git
+  location: git://github.com/sonyandy/var.git
 
 flag safe-ST
 flag strict-modifyRef
@@ -25,13 +25,17 @@ flag strict-modifyRef
 library
   hs-source-dirs: src
   exposed-modules:
-    Data.Ref
-    Data.Ref.Class
-    Data.Ref.IO
-    Data.Ref.ST
-    Data.Ref.Storable
+    Data.Var
+    Data.Var.Class
+    Data.Var.IO
+    Data.Var.ST
+    Data.Var.Storable
   other-modules:
-    Data.Ref.ByteArray
+    Control.Monad.Prim.Class
+    Data.Proxy
+    Data.Var.Array
+    Data.Var.ByteArray
+    Data.Var.Tuple
   build-depends:
     base >= 4 && < 5,
     transformers

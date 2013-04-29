@@ -13,46 +13,39 @@ Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
-module Data.Ref.ByteArray
-       ( ByteArrayRef
+module Data.Var.ByteArray
+       ( ByteArrayVar
        ) where
 
-#ifdef MODULE_Control_Monad_ST_Safe
-import Control.Monad.ST.Lazy.Safe (strictToLazyST)
-import qualified Control.Monad.ST.Lazy.Safe as Lazy
-#else
-import Control.Monad.ST.Lazy (strictToLazyST)
-import qualified Control.Monad.ST.Lazy as Lazy
-#endif
+import Control.Monad.Prim.Class
 
-import Data.Ref.Class
+import Data.Proxy
+import Data.Var.Class
 import Data.Typeable
 
 import GHC.Exts
 import GHC.Int
-import GHC.IO (IO (IO))
-import GHC.ST (ST (ST))
 import GHC.Stable (StablePtr (StablePtr))
 import GHC.Word
 
 #include "MachDeps.h"
 
-data ByteArrayRef s a = ByteArrayRef (MutableByteArray# s) deriving Typeable
+data ByteArrayVar s a = ByteArrayVar (MutableByteArray# s) deriving Typeable
 
-instance Eq (ByteArrayRef s a) where
-  ByteArrayRef a == ByteArrayRef b = sameMutableByteArray# a b
+instance Eq (ByteArrayVar s a) where
+  ByteArrayVar a == ByteArrayVar b = sameMutableByteArray# a b
 
-instance (ByteArrayElem a, MonadPrim m, s ~ World m) => Ref (ByteArrayRef s) a m where
-  newRef a = liftPrim $ \ s -> case newByteArray# (sizeOf# a) s of
+instance (ByteArrayElem a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
+  newVar a = liftPrim $ \ s -> case newByteArray# (sizeOf# a) s of
     (# s', array #) -> case writeByteArray# array 0# a s' of
-      s'' -> (# s'', ByteArrayRef array #)
-  {-# INLINE newRef #-}
-  readRef (ByteArrayRef array) = liftPrim $ readByteArray# array 0#
-  {-# INLINE readRef #-}
-  writeRef (ByteArrayRef array) a = liftPrim $ \ s ->
+      s'' -> (# s'', ByteArrayVar array #)
+  {-# INLINE newVar #-}
+  readVar (ByteArrayVar array) = liftPrim $ readByteArray# array 0#
+  {-# INLINE readVar #-}
+  writeVar (ByteArrayVar array) a = liftPrim $ \ s ->
     case writeByteArray# array 0# a s of
       s' -> (# s', () #)
-  {-# INLINE writeRef #-}
+  {-# INLINE writeVar #-}
 
 class ByteArrayElem a where
   size# :: t a -> Int#
@@ -62,12 +55,6 @@ class ByteArrayElem a where
 sizeOf# :: ByteArrayElem a => a -> Int#
 sizeOf# a = size# (proxy a)
 {-# INLINE sizeOf# #-}
-
-data Proxy a = Proxy
-
-proxy :: a -> Proxy a
-proxy _ = Proxy
-{-# INLINE proxy #-}
 
 instance ByteArrayElem Bool where
   size# _ = 1#
@@ -223,19 +210,3 @@ instance ByteArrayElem Word64 where
   {-# INLINE readByteArray# #-}
   writeByteArray# array i (W64# e) = writeWord64Array# array i e
   {-# INLINE writeByteArray# #-}
-
-class Monad m => MonadPrim m where
-  type World m
-  liftPrim :: (State# (World m) -> (# State# (World m), a #)) -> m a
-
-instance MonadPrim (ST s) where
-  type World (ST s) = s
-  liftPrim = ST
-
-instance MonadPrim (Lazy.ST s) where
-  type World (Lazy.ST s) = s
-  liftPrim = strictToLazyST . liftPrim
-
-instance MonadPrim IO where
-  type World IO = RealWorld
-  liftPrim = IO

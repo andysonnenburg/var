@@ -3,8 +3,8 @@ Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
-module Data.Ref
-       ( module Data.Ref.Class
+module Data.Var
+       ( module Data.Var.Class
        ) where
 
-import Data.Ref.Class
+import Data.Var.Class
