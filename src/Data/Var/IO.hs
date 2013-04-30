@@ -13,10 +13,8 @@ module Data.Var.IO
        ( module Data.Var.Class
        , IOVar
        , IOUVar
-       , ByteArrayElem
        , IOAVar
        , newIOAVars
-       , Traversable
        ) where
 
 #ifdef MODULE_Control_Monad_ST_Safe

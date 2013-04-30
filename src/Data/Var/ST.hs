@@ -13,10 +13,8 @@ module Data.Var.ST
        ( module Data.Var.Class
        , STVar
        , STUVar
-       , ByteArrayElem
        , STAVar
        , newSTAVars
-       , Traversable
        ) where
 
 #ifdef MODULE_Control_Monad_ST_Safe

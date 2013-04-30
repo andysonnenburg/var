@@ -27,6 +27,7 @@ library
   exposed-modules:
     Data.Var
     Data.Var.Class
+    Data.Var.Generics
     Data.Var.IO
     Data.Var.ST
     Data.Var.Storable
