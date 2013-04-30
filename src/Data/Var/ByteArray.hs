@@ -1,9 +1,12 @@
 {-# LANGUAGE
     CPP
+  , DefaultSignatures
   , DeriveDataTypeable
+  , FlexibleContexts
   , FlexibleInstances
   , MagicHash
-  , MultiParamTypeClasses #-}
+  , MultiParamTypeClasses
+  , TypeOperators #-}
 #ifdef LANGUAGE_Trustworthy
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -15,6 +18,8 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Var.ByteArray
        ( ByteArrayVar
+       , newByteArrayVar
+       , ByteArrayElem
        ) where
 
 import Control.Monad.Prim.Class
@@ -24,6 +29,7 @@ import Data.Var.Class
 import Data.Typeable
 
 import GHC.Exts
+import GHC.Generics
 import GHC.Int
 import GHC.Stable (StablePtr (StablePtr))
 import GHC.Word
@@ -32,13 +38,16 @@ import GHC.Word
 
 data ByteArrayVar s a = ByteArrayVar (MutableByteArray# s) deriving Typeable
 
+newByteArrayVar :: (ByteArrayElem a, MonadPrim m) => a -> m (ByteArrayVar (World m) a)
+newByteArrayVar a = liftPrim $ \ s -> case newByteArray# (sizeOf# a) s of
+  (# s', array #) -> case writeByteArray# array 0# a s' of
+    s'' -> (# s'', ByteArrayVar array #)
+
 instance Eq (ByteArrayVar s a) where
   ByteArrayVar a == ByteArrayVar b = sameMutableByteArray# a b
 
 instance (ByteArrayElem a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
-  newVar a = liftPrim $ \ s -> case newByteArray# (sizeOf# a) s of
-    (# s', array #) -> case writeByteArray# array 0# a s' of
-      s'' -> (# s'', ByteArrayVar array #)
+  newVar = newByteArrayVar
   {-# INLINE newVar #-}
   readVar (ByteArrayVar array) = liftPrim $ readByteArray# array 0#
   {-# INLINE readVar #-}
@@ -52,9 +61,110 @@ class ByteArrayElem a where
   readByteArray# :: MutableByteArray# s -> Int# -> State# s -> (# State# s, a #)
   writeByteArray# :: MutableByteArray# s -> Int# -> a -> State# s -> State# s
 
+  default size# :: (Generic a, GByteArrayElem (Rep a)) => t a -> Int#
+  size# a = gsize# (reproxyRep a)
+  {-# INLINE size# #-}
+
+  default readByteArray# :: ( Generic a
+                            , GByteArrayElem (Rep a)
+                            ) =>
+                            MutableByteArray# s -> Int# -> State# s -> (# State# s, a #)
+  readByteArray# array i s = case greadByteArray# array i s of
+    (# s', a #) -> (# s', to a #)
+  {-# INLINE readByteArray# #-}
+
+  default writeByteArray# :: ( Generic a
+                             , GByteArrayElem (Rep a)
+                             ) =>
+                             MutableByteArray# s -> Int# -> a -> State# s -> State# s
+  writeByteArray# array i a = gwriteByteArray# array i (from a)
+  {-# INLINE writeByteArray# #-}
+
+reproxyRep :: t a -> Proxy (Rep a p)
+reproxyRep _ = Proxy
+
 sizeOf# :: ByteArrayElem a => a -> Int#
 sizeOf# a = size# (proxy a)
 {-# INLINE sizeOf# #-}
+
+class GByteArrayElem a where
+  gsize# :: t (a p) -> Int#
+  greadByteArray# :: MutableByteArray# s -> Int# -> State# s -> (# State# s, a p #)
+  gwriteByteArray# :: MutableByteArray# s -> Int# -> a p -> State# s -> State# s
+
+instance GByteArrayElem U1 where
+  gsize# _ = 0#
+  greadByteArray# _ _ s = (# s, U1 #)
+  gwriteByteArray# _ _ _ s = s
+
+instance ByteArrayElem c => GByteArrayElem (K1 i c) where
+  gsize# a = size# (reproxyK1 a)
+  greadByteArray# array i s = case readByteArray# array i s of
+    (# s', a #) -> (# s', K1 a #)
+  gwriteByteArray# array i = writeByteArray# array i . unK1
+
+instance GByteArrayElem f => GByteArrayElem (M1 i c f) where
+  gsize# a = gsize# (reproxyM1 a)
+  greadByteArray# array i s = case greadByteArray# array i s of
+    (# s', a #) -> (# s', M1 a #)
+  gwriteByteArray# array i = gwriteByteArray# array i . unM1
+
+instance (GByteArrayElem a, GByteArrayElem b) => GByteArrayElem (a :*: b) where
+  gsize# a = gsize# (reproxyFst a) +# gsize# (reproxySnd a)
+  greadByteArray# array i s = case greadByteArray# array i s of
+    (# s', a #) -> case greadByteArray# array (i +# gsizeOf# a) s' of
+      (# s'', b #) -> (# s'', a :*: b #)
+  gwriteByteArray# array i (a :*: b) s = case gwriteByteArray# array i a s of
+    s' -> gwriteByteArray# array (i +# gsizeOf# a) b s'
+
+reproxyK1 :: t (K1 i c p) -> Proxy c
+reproxyK1 _ = Proxy
+
+reproxyM1 :: t (M1 i c f p) -> Proxy (f p)
+reproxyM1 _ = Proxy
+
+reproxyFst :: t ((f :*: g) p) -> Proxy (f p)
+reproxyFst _ = Proxy
+
+reproxySnd :: t ((f :*: g) p) -> Proxy (g p)
+reproxySnd _ = Proxy
+
+gsizeOf# :: GByteArrayElem a => a p -> Int#
+gsizeOf# a = gsize# (proxy a)
+{-# INLINE gsizeOf# #-}
+
+instance ByteArrayElem ()
+instance (ByteArrayElem a, ByteArrayElem b) => ByteArrayElem (a, b)
+instance ( ByteArrayElem a
+         , ByteArrayElem b
+         , ByteArrayElem c
+         ) => ByteArrayElem (a, b, c)
+instance ( ByteArrayElem a
+         , ByteArrayElem b
+         , ByteArrayElem c
+         , ByteArrayElem d
+         ) => ByteArrayElem (a, b, c, d)
+instance ( ByteArrayElem a
+         , ByteArrayElem b
+         , ByteArrayElem c
+         , ByteArrayElem d
+         , ByteArrayElem e
+         ) => ByteArrayElem (a, b, c, d, e)
+instance ( ByteArrayElem a
+         , ByteArrayElem b
+         , ByteArrayElem c
+         , ByteArrayElem d
+         , ByteArrayElem e
+         , ByteArrayElem f
+         ) => ByteArrayElem (a, b, c, d, e, f)
+instance ( ByteArrayElem a
+         , ByteArrayElem b
+         , ByteArrayElem c
+         , ByteArrayElem d
+         , ByteArrayElem e
+         , ByteArrayElem f
+         , ByteArrayElem g
+         ) => ByteArrayElem (a, b, c, d, e, f, g)
 
 instance ByteArrayElem Bool where
   size# _ = 1#

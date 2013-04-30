@@ -34,9 +34,11 @@ import qualified Control.Monad.Trans.Writer.Lazy as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
 
 import Data.IORef
+import Data.IOVar
 import Data.Monoid (Monoid)
 import Data.STRef
 import qualified Data.STRef.Lazy as Lazy
+import Data.STVar
 
 class Monad m => Var var a m where
   newVar :: a -> m (var a)
@@ -60,7 +62,7 @@ class Monad m => Var var a m where
 
   modifyVar' var f = readVar var >>= \ a -> writeVar var $! f a
 
-instance Var IORef a IO where
+instance Var IOVar a IO where
   newVar = newIORef
   readVar = readIORef
   writeVar = writeIORef
@@ -69,7 +71,7 @@ instance Var IORef a IO where
   modifyVar' = modifyIORef'
 #endif
 
-instance Var (STRef s) a (ST s) where
+instance Var (STVar s) a (ST s) where
   newVar = newSTRef
   readVar = readSTRef
   writeVar = writeSTRef
@@ -78,7 +80,7 @@ instance Var (STRef s) a (ST s) where
   modifyVar' = modifySTRef'
 #endif
 
-instance Var (Lazy.STRef s) a (Lazy.ST s) where
+instance Var (STVar s) a (Lazy.ST s) where
   newVar = Lazy.newSTRef
   readVar = Lazy.readSTRef
   writeVar = Lazy.writeSTRef
