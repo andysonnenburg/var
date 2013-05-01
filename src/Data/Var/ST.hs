@@ -65,5 +65,7 @@ instance Var (STAVar s) a (Lazy.ST s) where
   readVar = readVar . unSTAVar
   writeVar = writeVar . unSTAVar
 
-newSTAVars :: Traversable (STAVar s) as refs => as -> ST s refs
+newSTAVars :: ( Traversable Empty as refs
+              , Traversable (Wrap (STAVar s)) as refs
+              ) => as -> ST s refs
 newSTAVars = newVars STAVar

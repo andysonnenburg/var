@@ -26,11 +26,12 @@ library
   hs-source-dirs: src
   exposed-modules:
     Data.Var
+    Data.Var.ByteArrayElem
     Data.Var.Class
-    Data.Var.Generics
     Data.Var.IO
     Data.Var.ST
     Data.Var.Storable
+    Data.Var.Traversable
   other-modules:
     Control.Monad.Prim.Class
     Data.IOVar
@@ -54,6 +55,8 @@ library
     cpp-options: -DLANGUAGE_DefaultSignatures 
   if impl(ghc >= 7.2 && < 7.6)
     build-depends: ghc-prim
+  if impl(ghc >= 7.6)
+    cpp-options: -DDEPRECATED_Par0
   other-extensions:
     CPP,
     DeriveDataTypeable,

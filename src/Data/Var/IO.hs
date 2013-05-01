@@ -51,5 +51,7 @@ instance Var IOAVar a IO where
   readVar = readVar . unIOAVar
   writeVar = writeVar . unIOAVar
 
-newIOAVars :: Traversable IOAVar as refs => as -> IO refs
+newIOAVars :: ( Traversable Empty as refs
+              , Traversable (Wrap IOAVar) as refs
+              ) => as -> IO refs
 newIOAVars = newVars IOAVar
