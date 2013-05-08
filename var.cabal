@@ -4,8 +4,8 @@ synopsis:            Mutable variables and tuples
 description:
   This package defines the classes 'Var' and 'MTuple' of variables and tuples
   mutable within appropriate monads, as well as some instances of these classes.
-homepage:            http://github.com/sonyandy/ref
-bug-reports:         http://github.com/sonyandy/ref/issues
+homepage:            http://github.com/sonyandy/var
+bug-reports:         http://github.com/sonyandy/var/issues
 copyright:           Copyright (C) 2013 Andy Sonnenburg
 license:             BSD3
 license-file:        LICENSE
@@ -59,6 +59,8 @@ library
     build-depends: ghc-prim
   if impl(ghc >= 7.4)
     cpp-options: -DLANGUAGE_DataKinds
+  else
+    other-extensions: EmptyDataDecls
   if impl(ghc >= 7.6)
     cpp-options: -DDEPRECATED_Par0
   other-extensions:
