@@ -5,12 +5,11 @@
   , FlexibleContexts
   , FlexibleInstances
   , MagicHash
-  , MultiParamTypeClasses
-  , TypeOperators #-}
+  , MultiParamTypeClasses #-}
 #ifdef LANGUAGE_Trustworthy
 {-# LANGUAGE Trustworthy #-}
 #endif
-{-# LANGUAGE TypeFamilies, UnboxedTuples #-}
+{-# LANGUAGE TypeFamilies, TypeOperators, UnboxedTuples #-}
 {- |
 Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
@@ -112,15 +111,6 @@ instance (GByteArrayElem a, GByteArrayElem b) => GByteArrayElem (a :*: b) where
 
 reproxyK1 :: t (K1 i c p) -> Proxy c
 reproxyK1 _ = Proxy
-
-reproxyM1 :: t (M1 i c f p) -> Proxy (f p)
-reproxyM1 _ = Proxy
-
-reproxyFst :: t ((f :*: g) p) -> Proxy (f p)
-reproxyFst _ = Proxy
-
-reproxySnd :: t ((f :*: g) p) -> Proxy (g p)
-reproxySnd _ = Proxy
 
 gsizeOf# :: GByteArrayElem a => a p -> Int#
 gsizeOf# a = gsize# (proxy a)

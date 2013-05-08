@@ -1,8 +1,12 @@
+{-# LANGUAGE TypeOperators #-}
 module Data.Proxy
        ( Proxy (..)
        , proxy
        , reproxy
        , reproxyRep
+       , reproxyM1
+       , reproxyFst
+       , reproxySnd
        ) where
 
 import GHC.Generics
@@ -20,3 +24,12 @@ reproxy _ = Proxy
 reproxyRep :: t a -> Proxy (Rep a p)
 reproxyRep _ = Proxy
 {-# INLINE reproxyRep #-}
+
+reproxyM1 :: t (M1 i c f p) -> Proxy (f p)
+reproxyM1 _ = Proxy
+
+reproxyFst :: t ((f :*: g) p) -> Proxy (f p)
+reproxyFst _ = Proxy
+
+reproxySnd :: t ((f :*: g) p) -> Proxy (g p)
+reproxySnd _ = Proxy

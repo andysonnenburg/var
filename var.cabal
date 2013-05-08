@@ -1,9 +1,9 @@
 name:                var
 version:             0.1.0.0
-synopsis:            Mutable variables
+synopsis:            Mutable variables and tuples
 description:
-  This package defines the class 'Var' of variables mutable within appropriate
-  monads, as well as some instances of this class.
+  This package defines the classes 'Var' and 'MTuple' of variables and tuples
+  mutable within appropriate monads, as well as some instances of these classes.
 homepage:            http://github.com/sonyandy/ref
 bug-reports:         http://github.com/sonyandy/ref/issues
 copyright:           Copyright (C) 2013 Andy Sonnenburg
@@ -57,6 +57,8 @@ library
     cpp-options: -DLANGUAGE_DefaultSignatures 
   if impl(ghc >= 7.2 && < 7.6)
     build-depends: ghc-prim
+  if impl(ghc >= 7.4)
+    cpp-options: -DLANGUAGE_DataKinds
   if impl(ghc >= 7.6)
     cpp-options: -DDEPRECATED_Par0
   other-extensions:

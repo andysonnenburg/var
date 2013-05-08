@@ -18,7 +18,9 @@ module Data.Tuple.MTuple
        , MField9 (..)
        ) where
 
+#ifdef LANGUAGE_DefaultSignatures
 import Control.Monad.Trans.Class
+#endif
 
 class Monad m => MTuple var s m where
   thawTuple :: s -> m (var s)
