@@ -18,7 +18,6 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Var.ByteArray
        ( ByteArrayVar
-       , newByteArrayVar
        , ByteArrayElem
        ) where
 
@@ -26,7 +25,7 @@ import Control.Monad.Prim.Class
 
 import Data.Proxy
 import Data.Var.Class
-import Data.Typeable
+import Data.Typeable (Typeable)
 
 import GHC.Exts
 import GHC.Generics
@@ -38,16 +37,13 @@ import GHC.Word
 
 data ByteArrayVar s a = ByteArrayVar (MutableByteArray# s) deriving Typeable
 
-newByteArrayVar :: (ByteArrayElem a, MonadPrim m) => a -> m (ByteArrayVar (World m) a)
-newByteArrayVar a = liftPrim $ \ s -> case newByteArray# (sizeOf# a) s of
-  (# s', array #) -> case writeByteArray# array 0# a s' of
-    s'' -> (# s'', ByteArrayVar array #)
-
 instance Eq (ByteArrayVar s a) where
   ByteArrayVar a == ByteArrayVar b = sameMutableByteArray# a b
 
 instance (ByteArrayElem a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
-  newVar = newByteArrayVar
+  newVar a = liftPrim $ \ s -> case newByteArray# (sizeOf# a) s of
+    (# s', array #) -> case writeByteArray# array 0# a s' of
+      s'' -> (# s'', ByteArrayVar array #)
   {-# INLINE newVar #-}
   readVar (ByteArrayVar array) = liftPrim $ readByteArray# array 0#
   {-# INLINE readVar #-}
@@ -79,9 +75,6 @@ class ByteArrayElem a where
                              MutableByteArray# s -> Int# -> a -> State# s -> State# s
   writeByteArray# array i a = gwriteByteArray# array i (from a)
   {-# INLINE writeByteArray# #-}
-
-reproxyRep :: t a -> Proxy (Rep a p)
-reproxyRep _ = Proxy
 
 sizeOf# :: ByteArrayElem a => a -> Int#
 sizeOf# a = size# (proxy a)

@@ -2,7 +2,10 @@ module Data.Proxy
        ( Proxy (..)
        , proxy
        , reproxy
+       , reproxyRep
        ) where
+
+import GHC.Generics
 
 data Proxy a = Proxy
 
@@ -13,3 +16,7 @@ proxy _ = Proxy
 reproxy :: t a -> Proxy b
 reproxy _ = Proxy
 {-# INLINE reproxy #-}
+
+reproxyRep :: t a -> Proxy (Rep a p)
+reproxyRep _ = Proxy
+{-# INLINE reproxyRep #-}

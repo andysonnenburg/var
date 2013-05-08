@@ -13,8 +13,6 @@ module Data.Var.ST
        ( module Data.Var.Class
        , STVar
        , STUVar
-       , STAVar
-       , newSTAVars
        ) where
 
 #ifdef MODULE_Control_Monad_ST_Safe
@@ -26,7 +24,6 @@ import qualified Control.Monad.ST.Lazy as Lazy
 #endif
 
 import Data.STVar
-import Data.Var.Array
 import Data.Var.ByteArray
 import Data.Var.Class
 import Data.Typeable
@@ -48,24 +45,3 @@ instance ByteArrayElem a => Var (STUVar s) a (Lazy.ST s) where
   newVar = fmap STUVar . newVar
   readVar = readVar . unSTUVar
   writeVar = writeVar . unSTUVar
-
-newtype STAVar s a = STAVar { unSTAVar :: ArrayVar s a }
-{- ^
-a value of type @'STAVar' s a@ is a mutable variable in state thread @s@,
-containing a value of type @a@
--}
-
-instance Var (STAVar s) a (ST s) where
-  newVar = fmap STAVar . newVar
-  readVar = readVar . unSTAVar
-  writeVar = writeVar . unSTAVar
-
-instance Var (STAVar s) a (Lazy.ST s) where
-  newVar = fmap STAVar . newVar
-  readVar = readVar . unSTAVar
-  writeVar = writeVar . unSTAVar
-
-newSTAVars :: ( Traversable Empty as refs
-              , Traversable (Wrap (STAVar s)) as refs
-              ) => as -> ST s refs
-newSTAVars = newVars STAVar

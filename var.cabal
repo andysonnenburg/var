@@ -25,19 +25,21 @@ flag strict-modifyRef
 library
   hs-source-dirs: src
   exposed-modules:
+    Data.Tuple.IO
+    Data.Tuple.MTuple
+    Data.Tuple.ST
     Data.Var
     Data.Var.ByteArrayElem
     Data.Var.Class
     Data.Var.IO
     Data.Var.ST
     Data.Var.Storable
-    Data.Var.Traversable
   other-modules:
     Control.Monad.Prim.Class
     Data.IOVar
     Data.Proxy
     Data.STVar
-    Data.Var.Array
+    Data.Tuple.Array
     Data.Var.ByteArray
   build-depends:
     base >= 4 && < 5,

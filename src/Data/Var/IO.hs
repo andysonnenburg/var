@@ -13,8 +13,6 @@ module Data.Var.IO
        ( module Data.Var.Class
        , IOVar
        , IOUVar
-       , IOAVar
-       , newIOAVars
        ) where
 
 #ifdef MODULE_Control_Monad_ST_Safe
@@ -24,7 +22,6 @@ import Control.Monad.ST (RealWorld)
 #endif
 
 import Data.IOVar
-import Data.Var.Array
 import Data.Var.ByteArray
 import Data.Var.Class
 import Data.Typeable
@@ -40,18 +37,3 @@ instance ByteArrayElem a => Var IOUVar a IO where
   newVar = fmap IOUVar . newVar
   readVar = readVar . unIOUVar
   writeVar = writeVar . unIOUVar
-
-{- |
-A mutable variable in the 'IO' monad
--}
-newtype IOAVar a = IOAVar { unIOAVar :: ArrayVar RealWorld a }
-
-instance Var IOAVar a IO where
-  newVar = fmap IOAVar . newVar
-  readVar = readVar . unIOAVar
-  writeVar = writeVar . unIOAVar
-
-newIOAVars :: ( Traversable Empty as refs
-              , Traversable (Wrap IOAVar) as refs
-              ) => as -> IO refs
-newIOAVars = newVars IOAVar
