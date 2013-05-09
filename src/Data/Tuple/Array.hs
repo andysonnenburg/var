@@ -25,6 +25,13 @@
 module Data.Tuple.Array
        ( ArrayTuple
        , Tuple
+       , Field1
+       , Field2
+       , Field3
+       , Field4
+       , Field5
+       , Field6
+       , Field7
        ) where
 
 import Control.Monad.Prim.Class
@@ -152,16 +159,16 @@ type family Find n xs
 type instance Find Z (x :| xs) = x
 type instance Find (S n) (x :| xs) = Find n xs
 
-type ToList a = RepS a Nil
+type ToList a = Concat a Nil
 
 #ifdef LANGUAGE_DataKinds
-type family RepS (x :: * -> *) (xs :: List *) :: List *
+type family Concat (x :: * -> *) (xs :: List *) :: List *
 #else
-type family RepS (x :: * -> *) xs
+type family Concat (x :: * -> *) xs
 #endif
-type instance RepS (K1 i c) xs = c :| xs
-type instance RepS (M1 i c f) xs = RepS f xs
-type instance RepS (a :*: b) xs = RepS a (RepS b xs)
+type instance Concat (K1 i c) xs = c :| xs
+type instance Concat (M1 i c f) xs = Concat f xs
+type instance Concat (a :*: b) xs = Concat a (Concat b xs)
 
 type Field1 a = Find N0 (ToList (Rep a))
 type Field2 a = Find N1 (ToList (Rep a))
@@ -173,6 +180,7 @@ type Field7 a = Find N6 (ToList (Rep a))
 
 instance ( MonadPrim m
          , s ~ World m
+         , Tuple t
          , a ~ Field1 t
          ) => MField1 (ArrayTuple s) t a m where
   read1 = unsafeRead 0#
@@ -180,6 +188,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
+         , Tuple t
          , a ~ Field2 t
          ) => MField2 (ArrayTuple s) t a m where
   read2 = unsafeRead 1#
@@ -187,6 +196,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
+         , Tuple t
          , a ~ Field3 t
          ) => MField3 (ArrayTuple s) t a m where
   read3 = unsafeRead 2#
@@ -194,6 +204,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
+         , Tuple t
          , a ~ Field4 t
          ) => MField4 (ArrayTuple s) t a m where
   read4 = unsafeRead 3#
@@ -201,6 +212,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
+         , Tuple t
          , a ~ Field5 t
          ) => MField5 (ArrayTuple s) t a m where
   read5 = unsafeRead 4#
@@ -208,6 +220,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
+         , Tuple t
          , a ~ Field6 t
          ) => MField6 (ArrayTuple s) t a m where
   read6 = unsafeRead 5#
@@ -215,6 +228,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
+         , Tuple t
          , a ~ Field7 t
          ) => MField7 (ArrayTuple s) t a m where
   read7 = unsafeRead 6#

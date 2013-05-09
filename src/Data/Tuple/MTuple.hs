@@ -34,7 +34,7 @@ class Monad m => MTuple var s m where
   freezeTuple = lift . freezeTuple
 #endif
 
-class Monad m => MField1 var s a m | s -> a where
+class MTuple var s m => MField1 var s a m | s -> a where
   read1 :: var s -> m a
   write1 :: var s -> a -> m ()
   modify1 :: var s -> (a -> a) -> m ()
@@ -52,7 +52,7 @@ class Monad m => MField1 var s a m | s -> a where
 
   modify1' var f = read1 var >>= \ a -> write1 var $! f a
 
-class Monad m => MField2 var s a m | s -> a where
+class MTuple var s m => MField2 var s a m | s -> a where
   read2 :: var s -> m a
   write2 :: var s -> a -> m ()
   modify2 :: var s -> (a -> a) -> m ()
@@ -70,7 +70,7 @@ class Monad m => MField2 var s a m | s -> a where
 
   modify2' var f = read2 var >>= \ a -> write2 var $! f a
 
-class Monad m => MField3 var s a m | s -> a where
+class MTuple var s m => MField3 var s a m | s -> a where
   read3 :: var s -> m a
   write3 :: var s -> a -> m ()
   modify3 :: var s -> (a -> a) -> m ()
@@ -88,7 +88,7 @@ class Monad m => MField3 var s a m | s -> a where
 
   modify3' var f = read3 var >>= \ a -> write3 var $! f a
 
-class Monad m => MField4 var s a m | s -> a where
+class MTuple var s m => MField4 var s a m | s -> a where
   read4 :: var s -> m a
   write4 :: var s -> a -> m ()
   modify4 :: var s -> (a -> a) -> m ()
@@ -106,7 +106,7 @@ class Monad m => MField4 var s a m | s -> a where
 
   modify4' var f = read4 var >>= \ a -> write4 var $! f a
 
-class Monad m => MField5 var s a m | s -> a where
+class MTuple var s m => MField5 var s a m | s -> a where
   read5 :: var s -> m a
   write5 :: var s -> a -> m ()
   modify5 :: var s -> (a -> a) -> m ()
@@ -124,7 +124,7 @@ class Monad m => MField5 var s a m | s -> a where
 
   modify5' var f = read5 var >>= \ a -> write5 var $! f a
 
-class Monad m => MField6 var s a m | s -> a where
+class MTuple var s m => MField6 var s a m | s -> a where
   read6 :: var s -> m a
   write6 :: var s -> a -> m ()
   modify6 :: var s -> (a -> a) -> m ()
@@ -142,7 +142,7 @@ class Monad m => MField6 var s a m | s -> a where
 
   modify6' var f = read6 var >>= \ a -> write6 var $! f a
 
-class Monad m => MField7 var s a m | s -> a where
+class MTuple var s m => MField7 var s a m | s -> a where
   read7 :: var s -> m a
   write7 :: var s -> a -> m ()
   modify7 :: var s -> (a -> a) -> m ()
@@ -160,7 +160,7 @@ class Monad m => MField7 var s a m | s -> a where
 
   modify7' var f = read7 var >>= \ a -> write7 var $! f a
 
-class Monad m => MField8 var s a m | s -> a where
+class MTuple var s m => MField8 var s a m | s -> a where
   read8 :: var s -> m a
   write8 :: var s -> a -> m ()
   modify8 :: var s -> (a -> a) -> m ()
@@ -178,7 +178,7 @@ class Monad m => MField8 var s a m | s -> a where
 
   modify8' var f = read8 var >>= \ a -> write8 var $! f a
 
-class Monad m => MField9 var s a m | s -> a where
+class MTuple var s m => MField9 var s a m | s -> a where
   read9 :: var s -> m a
   write9 :: var s -> a -> m ()
   modify9 :: var s -> (a -> a) -> m ()
