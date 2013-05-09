@@ -62,6 +62,8 @@ library
   else
     other-extensions: EmptyDataDecls
   if impl(ghc >= 7.6)
+    cpp-options: -DFEATURE_KindVariables
+  if impl(ghc >= 7.6)
     cpp-options: -DDEPRECATED_Par0
   other-extensions:
     CPP,

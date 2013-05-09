@@ -152,7 +152,11 @@ data a :| b
 #endif
 
 #ifdef LANGUAGE_DataKinds
+#ifdef FEATURE_KindVariables
 type family Find (n :: Nat) (xs :: List k) :: k
+#else
+type family Find (n :: Nat) (xs :: List *)
+#endif
 #else
 type family Find n xs
 #endif
