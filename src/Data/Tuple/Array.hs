@@ -11,6 +11,9 @@
   , FlexibleInstances
   , MagicHash
   , MultiParamTypeClasses #-}
+#ifdef LANGUAGE_DataKinds
+{-# LANGUAGE PolyKinds #-}
+#endif
 #ifdef LANGUAGE_Trustworthy
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -36,7 +39,11 @@ import GHC.Generics hiding (S)
 
 import Unsafe.Coerce (unsafeCoerce)
 
+#ifdef LANGUAGE_DataKinds
+data ArrayTuple s (a :: *) = ArrayTuple (MutableArray# s Any) deriving Typeable
+#else
 data ArrayTuple s a = ArrayTuple (MutableArray# s Any) deriving Typeable
+#endif
 
 instance Eq (ArrayTuple s a) where
   ArrayTuple a == ArrayTuple b = sameMutableArray# a b
@@ -123,21 +130,12 @@ data S a
 #endif
 
 type N0 = Z
-#ifdef LANGUAGE_DataKinds
-type N1 = 'S N0
-type N2 = 'S N1
-type N3 = 'S N2
-type N4 = 'S N3
-type N5 = 'S N4
-type N6 = 'S N5
-#else
 type N1 = S N0
 type N2 = S N1
 type N3 = S N2
 type N4 = S N3
 type N5 = S N4
 type N6 = S N5
-#endif
 
 #ifdef LANGUAGE_DataKinds
 data List a = Nil | a :| List a
@@ -147,16 +145,12 @@ data a :| b
 #endif
 
 #ifdef LANGUAGE_DataKinds
-type family Find (n :: Nat) (xs :: List *)
+type family Find (n :: Nat) (xs :: List k) :: k
 #else
 type family Find n xs
 #endif
 type instance Find Z (x :| xs) = x
-#ifdef LANGUAGE_DataKinds
-type instance Find ('S n) (x :| xs) = Find n xs
-#else
 type instance Find (S n) (x :| xs) = Find n xs
-#endif
 
 type ToList a = RepS a Nil
 
