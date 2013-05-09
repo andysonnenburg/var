@@ -11,7 +11,7 @@
   , FlexibleInstances
   , MagicHash
   , MultiParamTypeClasses #-}
-#ifdef LANGUAGE_DataKinds
+#if defined(LANGUAGE_DataKinds) && defined(FEATURE_KindVariables)
 {-# LANGUAGE PolyKinds #-}
 #endif
 #ifdef LANGUAGE_Trustworthy
