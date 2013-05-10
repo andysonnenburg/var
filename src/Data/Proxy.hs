@@ -27,9 +27,12 @@ reproxyRep _ = Proxy
 
 reproxyM1 :: t (M1 i c f p) -> Proxy (f p)
 reproxyM1 _ = Proxy
+{-# INLINE reproxyM1 #-}
 
 reproxyFst :: t ((f :*: g) p) -> Proxy (f p)
 reproxyFst _ = Proxy
+{-# INLINE reproxyFst #-}
 
 reproxySnd :: t ((f :*: g) p) -> Proxy (g p)
 reproxySnd _ = Proxy
+{-# INLINE reproxySnd #-}
