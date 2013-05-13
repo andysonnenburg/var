@@ -33,7 +33,7 @@ newtype IOUVar a =
   IOUVar { unIOUVar :: ByteArrayVar RealWorld a
          } deriving (Eq, Typeable)
 
-instance ByteArrayElem a => Var IOUVar a IO where
+instance ByteArraySlice a => Var IOUVar a IO where
   newVar = fmap IOUVar . newVar
   readVar = readVar . unIOUVar
   writeVar = writeVar . unIOUVar

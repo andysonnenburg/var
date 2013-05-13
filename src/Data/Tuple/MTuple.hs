@@ -3,6 +3,11 @@
 {-# LANGUAGE DefaultSignatures #-}
 #endif
 {-# LANGUAGE FunctionalDependencies, MultiParamTypeClasses #-}
+{- |
+Copyright   :  (c) Andy Sonnenburg 2013
+License     :  BSD3
+Maintainer  :  andy22286@gmail.com
+-}
 module Data.Tuple.MTuple
        (
          -- * Tuples

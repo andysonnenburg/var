@@ -29,7 +29,7 @@ library
     Data.Tuple.MTuple
     Data.Tuple.ST
     Data.Var
-    Data.Var.ByteArrayElem
+    Data.Var.ByteArraySlice
     Data.Var.Class
     Data.Var.IO
     Data.Var.ST
@@ -41,6 +41,8 @@ library
     Data.STVar
     Data.Tuple.Array
     Data.Var.ByteArray
+    Type.List
+    Type.Nat
   build-depends:
     base >= 4 && < 5,
     transformers

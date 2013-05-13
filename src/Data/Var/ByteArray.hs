@@ -17,7 +17,7 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Var.ByteArray
        ( ByteArrayVar
-       , ByteArrayElem
+       , ByteArraySlice
        ) where
 
 import Control.Monad.Prim.Class
@@ -39,7 +39,7 @@ data ByteArrayVar s a = ByteArrayVar (MutableByteArray# s) deriving Typeable
 instance Eq (ByteArrayVar s a) where
   ByteArrayVar a == ByteArrayVar b = sameMutableByteArray# a b
 
-instance (ByteArrayElem a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
+instance (ByteArraySlice a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
   newVar a = liftPrim $ \ s -> case newByteArray# (sizeOf# a) s of
     (# s', array #) -> case writeByteArray# array 0# a s' of
       s'' -> (# s'', ByteArrayVar array #)
@@ -51,17 +51,17 @@ instance (ByteArrayElem a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m
       s' -> (# s', () #)
   {-# INLINE writeVar #-}
 
-class ByteArrayElem a where
+class ByteArraySlice a where
   size# :: t a -> Int#
   readByteArray# :: MutableByteArray# s -> Int# -> State# s -> (# State# s, a #)
   writeByteArray# :: MutableByteArray# s -> Int# -> a -> State# s -> State# s
 
-  default size# :: (Generic a, GByteArrayElem (Rep a)) => t a -> Int#
+  default size# :: (Generic a, GByteArraySlice (Rep a)) => t a -> Int#
   size# a = gsize# (reproxyRep a)
   {-# INLINE size# #-}
 
   default readByteArray# :: ( Generic a
-                            , GByteArrayElem (Rep a)
+                            , GByteArraySlice (Rep a)
                             ) =>
                             MutableByteArray# s -> Int# -> State# s -> (# State# s, a #)
   readByteArray# array i s = case greadByteArray# array i s of
@@ -69,39 +69,39 @@ class ByteArrayElem a where
   {-# INLINE readByteArray# #-}
 
   default writeByteArray# :: ( Generic a
-                             , GByteArrayElem (Rep a)
+                             , GByteArraySlice (Rep a)
                              ) =>
                              MutableByteArray# s -> Int# -> a -> State# s -> State# s
   writeByteArray# array i a = gwriteByteArray# array i (from a)
   {-# INLINE writeByteArray# #-}
 
-sizeOf# :: ByteArrayElem a => a -> Int#
+sizeOf# :: ByteArraySlice a => a -> Int#
 sizeOf# a = size# (proxy a)
 {-# INLINE sizeOf# #-}
 
-class GByteArrayElem a where
+class GByteArraySlice a where
   gsize# :: t (a p) -> Int#
   greadByteArray# :: MutableByteArray# s -> Int# -> State# s -> (# State# s, a p #)
   gwriteByteArray# :: MutableByteArray# s -> Int# -> a p -> State# s -> State# s
 
-instance GByteArrayElem U1 where
+instance GByteArraySlice U1 where
   gsize# _ = 0#
   greadByteArray# _ _ s = (# s, U1 #)
   gwriteByteArray# _ _ _ s = s
 
-instance ByteArrayElem c => GByteArrayElem (K1 i c) where
+instance ByteArraySlice c => GByteArraySlice (K1 i c) where
   gsize# a = size# (reproxyK1 a)
   greadByteArray# array i s = case readByteArray# array i s of
     (# s', a #) -> (# s', K1 a #)
   gwriteByteArray# array i = writeByteArray# array i . unK1
 
-instance GByteArrayElem f => GByteArrayElem (M1 i c f) where
+instance GByteArraySlice f => GByteArraySlice (M1 i c f) where
   gsize# a = gsize# (reproxyM1 a)
   greadByteArray# array i s = case greadByteArray# array i s of
     (# s', a #) -> (# s', M1 a #)
   gwriteByteArray# array i = gwriteByteArray# array i . unM1
 
-instance (GByteArrayElem a, GByteArrayElem b) => GByteArrayElem (a :*: b) where
+instance (GByteArraySlice a, GByteArraySlice b) => GByteArraySlice (a :*: b) where
   gsize# a = gsize# (reproxyFst a) +# gsize# (reproxySnd a)
   greadByteArray# array i s = case greadByteArray# array i s of
     (# s', a #) -> case greadByteArray# array (i +# gsizeOf# a) s' of
@@ -112,44 +112,44 @@ instance (GByteArrayElem a, GByteArrayElem b) => GByteArrayElem (a :*: b) where
 reproxyK1 :: t (K1 i c p) -> Proxy c
 reproxyK1 _ = Proxy
 
-gsizeOf# :: GByteArrayElem a => a p -> Int#
+gsizeOf# :: GByteArraySlice a => a p -> Int#
 gsizeOf# a = gsize# (proxy a)
 {-# INLINE gsizeOf# #-}
 
-instance ByteArrayElem ()
-instance (ByteArrayElem a, ByteArrayElem b) => ByteArrayElem (a, b)
-instance ( ByteArrayElem a
-         , ByteArrayElem b
-         , ByteArrayElem c
-         ) => ByteArrayElem (a, b, c)
-instance ( ByteArrayElem a
-         , ByteArrayElem b
-         , ByteArrayElem c
-         , ByteArrayElem d
-         ) => ByteArrayElem (a, b, c, d)
-instance ( ByteArrayElem a
-         , ByteArrayElem b
-         , ByteArrayElem c
-         , ByteArrayElem d
-         , ByteArrayElem e
-         ) => ByteArrayElem (a, b, c, d, e)
-instance ( ByteArrayElem a
-         , ByteArrayElem b
-         , ByteArrayElem c
-         , ByteArrayElem d
-         , ByteArrayElem e
-         , ByteArrayElem f
-         ) => ByteArrayElem (a, b, c, d, e, f)
-instance ( ByteArrayElem a
-         , ByteArrayElem b
-         , ByteArrayElem c
-         , ByteArrayElem d
-         , ByteArrayElem e
-         , ByteArrayElem f
-         , ByteArrayElem g
-         ) => ByteArrayElem (a, b, c, d, e, f, g)
+instance ByteArraySlice ()
+instance (ByteArraySlice a, ByteArraySlice b) => ByteArraySlice (a, b)
+instance ( ByteArraySlice a
+         , ByteArraySlice b
+         , ByteArraySlice c
+         ) => ByteArraySlice (a, b, c)
+instance ( ByteArraySlice a
+         , ByteArraySlice b
+         , ByteArraySlice c
+         , ByteArraySlice d
+         ) => ByteArraySlice (a, b, c, d)
+instance ( ByteArraySlice a
+         , ByteArraySlice b
+         , ByteArraySlice c
+         , ByteArraySlice d
+         , ByteArraySlice e
+         ) => ByteArraySlice (a, b, c, d, e)
+instance ( ByteArraySlice a
+         , ByteArraySlice b
+         , ByteArraySlice c
+         , ByteArraySlice d
+         , ByteArraySlice e
+         , ByteArraySlice f
+         ) => ByteArraySlice (a, b, c, d, e, f)
+instance ( ByteArraySlice a
+         , ByteArraySlice b
+         , ByteArraySlice c
+         , ByteArraySlice d
+         , ByteArraySlice e
+         , ByteArraySlice f
+         , ByteArraySlice g
+         ) => ByteArraySlice (a, b, c, d, e, f, g)
 
-instance ByteArrayElem Bool where
+instance ByteArraySlice Bool where
   size# _ = 1#
   {-# INLINE size# #-}
   readByteArray# array i s = case readInt8Array# array i s of
@@ -160,7 +160,7 @@ instance ByteArrayElem Bool where
     | otherwise = writeInt8Array# array i 0#
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Char where
+instance ByteArraySlice Char where
   size# _ = SIZEOF_HSCHAR#
   {-# INLINE size# #-}
   readByteArray# array i s = case readWideCharArray# array i s of
@@ -169,7 +169,7 @@ instance ByteArrayElem Char where
   writeByteArray# array i (C# e) = writeWideCharArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Int where
+instance ByteArraySlice Int where
   size# _ = SIZEOF_HSINT#
   {-# INLINE size# #-}
   readByteArray# array i s = case readIntArray# array i s of
@@ -178,7 +178,7 @@ instance ByteArrayElem Int where
   writeByteArray# array i (I# e) = writeIntArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Word where
+instance ByteArraySlice Word where
   size# _ = SIZEOF_HSWORD#
   {-# INLINE size# #-}
   readByteArray# array i s = case readWordArray# array i s of
@@ -187,7 +187,7 @@ instance ByteArrayElem Word where
   writeByteArray# array i (W# e) = writeWordArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem (Ptr a) where
+instance ByteArraySlice (Ptr a) where
   size# _ = SIZEOF_HSWORD#
   {-# INLINE size# #-}
   readByteArray# array i s = case readAddrArray# array i s of
@@ -196,7 +196,7 @@ instance ByteArrayElem (Ptr a) where
   writeByteArray# array i (Ptr e) = writeAddrArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem (FunPtr a) where
+instance ByteArraySlice (FunPtr a) where
   size# _ = SIZEOF_HSWORD#
   {-# INLINE size# #-}
   readByteArray# array i s = case readAddrArray# array i s of
@@ -205,7 +205,7 @@ instance ByteArrayElem (FunPtr a) where
   writeByteArray# array i (FunPtr e) = writeAddrArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Float where
+instance ByteArraySlice Float where
   size# _ = SIZEOF_HSFLOAT#
   {-# INLINE size# #-}
   readByteArray# array i s = case readFloatArray# array i s of
@@ -214,7 +214,7 @@ instance ByteArrayElem Float where
   writeByteArray# array i (F# e) = writeFloatArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Double where
+instance ByteArraySlice Double where
   size# _ = SIZEOF_HSDOUBLE#
   {-# INLINE size# #-}
   readByteArray# array i s = case readDoubleArray# array i s of
@@ -223,7 +223,7 @@ instance ByteArrayElem Double where
   writeByteArray# array i (D# e) = writeDoubleArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem (StablePtr a) where
+instance ByteArraySlice (StablePtr a) where
   size# _ = SIZEOF_HSWORD#
   {-# INLINE size# #-}
   readByteArray# array i s = case readStablePtrArray# array i s of
@@ -232,7 +232,7 @@ instance ByteArrayElem (StablePtr a) where
   writeByteArray# array i (StablePtr e) = writeStablePtrArray# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Int8 where
+instance ByteArraySlice Int8 where
   size# _ = 1#
   {-# INLINE size# #-}
   readByteArray# array i s = case readInt8Array# array i s of
@@ -241,7 +241,7 @@ instance ByteArrayElem Int8 where
   writeByteArray# array i (I8# e) = writeInt8Array# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Int16 where
+instance ByteArraySlice Int16 where
   size# _ = 2#
   {-# INLINE size# #-}
   readByteArray# array i s = case readInt16Array# array i s of
@@ -250,7 +250,7 @@ instance ByteArrayElem Int16 where
   writeByteArray# array i (I16# e) = writeInt16Array# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Int32 where
+instance ByteArraySlice Int32 where
   size# _ = 4#
   {-# INLINE size# #-}
   readByteArray# array i s = case readInt32Array# array i s of
@@ -259,7 +259,7 @@ instance ByteArrayElem Int32 where
   writeByteArray# array i (I32# e) = writeInt32Array# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Int64 where
+instance ByteArraySlice Int64 where
   size# _ = 8#
   {-# INLINE size# #-}
   readByteArray# array i s = case readInt64Array# array i s of
@@ -268,7 +268,7 @@ instance ByteArrayElem Int64 where
   writeByteArray# array i (I64# e) = writeInt64Array# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Word8 where
+instance ByteArraySlice Word8 where
   size# _ = 1#
   {-# INLINE size# #-}
   readByteArray# array i s = case readWord8Array# array i s of
@@ -277,7 +277,7 @@ instance ByteArrayElem Word8 where
   writeByteArray# array i (W8# e) = writeWord8Array# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Word16 where
+instance ByteArraySlice Word16 where
   size# _ = 2#
   {-# INLINE size# #-}
   readByteArray# array i s = case readWord16Array# array i s of
@@ -286,7 +286,7 @@ instance ByteArrayElem Word16 where
   writeByteArray# array i (W16# e) = writeWord16Array# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Word32 where
+instance ByteArraySlice Word32 where
   size# _ = 4#
   {-# INLINE size# #-}
   readByteArray# array i s = case readWord32Array# array i s of
@@ -295,7 +295,7 @@ instance ByteArrayElem Word32 where
   writeByteArray# array i (W32# e) = writeWord32Array# array i e
   {-# INLINE writeByteArray# #-}
 
-instance ByteArrayElem Word64 where
+instance ByteArraySlice Word64 where
   size# _ = 8#
   {-# INLINE size# #-}
   readByteArray# array i s = case readWord64Array# array i s of

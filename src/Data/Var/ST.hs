@@ -36,12 +36,12 @@ a value of type @'STUVar' s a@ is a mutable variable in state thread @s@,
 containing an unboxed value of type @a@
 -}
 
-instance ByteArrayElem a => Var (STUVar s) a (ST s) where
+instance ByteArraySlice a => Var (STUVar s) a (ST s) where
   newVar = fmap STUVar . newVar
   readVar = readVar . unSTUVar
   writeVar = writeVar . unSTUVar
 
-instance ByteArrayElem a => Var (STUVar s) a (Lazy.ST s) where
+instance ByteArraySlice a => Var (STUVar s) a (Lazy.ST s) where
   newVar = fmap STUVar . newVar
   readVar = readVar . unSTUVar
   writeVar = writeVar . unSTUVar
