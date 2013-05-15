@@ -1,13 +1,6 @@
-{-# LANGUAGE CPP #-}
-#ifdef LANGUAGE_DataKinds
-{-# LANGUAGE DataKinds #-}
-#endif
-{-# LANGUAGE DefaultSignatures, DeriveDataTypeable #-}
-#ifndef LANGUAGE_DataKinds
-{-# LANGUAGE EmptyDataDecls #-}
-#endif
 {-# LANGUAGE
-    FlexibleContexts
+    CPP
+  , DeriveDataTypeable
   , FlexibleInstances
   , MagicHash
   , MultiParamTypeClasses #-}
@@ -16,7 +9,6 @@
 #endif
 {-# LANGUAGE
     TypeFamilies
-  , TypeOperators
   , UnboxedTuples
   , UndecidableInstances #-}
 {- |
@@ -26,30 +18,16 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.Array
        ( ArrayTuple
-       , Tuple
-       , Field1
-       , Field2
-       , Field3
-       , Field4
-       , Field5
-       , Field6
-       , Field7
-       , Field8
-       , Field9
        ) where
 
 import Control.Monad.Prim.Class
 
-import Data.Proxy
+import Data.Tuple.Class
 import Data.Tuple.MTuple
 import Data.Typeable (Typeable)
 
 import GHC.Exts hiding (readArray#, writeArray#)
 import qualified GHC.Exts
-import GHC.Generics hiding (S)
-
-import Type.List
-import Type.Nat
 
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -58,108 +36,11 @@ data ArrayTuple s a = ArrayTuple (MutableArray# s Any) deriving Typeable
 instance Eq (ArrayTuple s a) where
   ArrayTuple a == ArrayTuple b = sameMutableArray# a b
 
-instance (Tuple t, MonadPrim m, s ~ World m) => MTuple (ArrayTuple s) t m where
+instance (MonadPrim m, s ~ World m, Tuple t) => MTuple (ArrayTuple s) t m where
   thawTuple a = liftPrim $ \ s -> case newArray# (sizeOf# a) undefined s of
     (# s', array #) -> case writeArray# array 0# a s' of
       s'' -> (# s'', ArrayTuple array #)
   freezeTuple (ArrayTuple array) = liftPrim $ readArray# array 0#
-
-class Tuple a where
-#ifdef LANGUAGE_DataKinds
-  type ListRep a :: List *
-#else
-  type ListRep a
-#endif
-
-  size# :: t a -> Int#
-  readArray# :: MutableArray# s Any -> Int# -> State# s -> (# State# s, a #)
-  writeArray# :: MutableArray# s Any -> Int# -> a -> State# s -> State# s
-
-  type ListRep a = GListRep (Rep a)
-
-  default size# :: (Generic a, GTuple (Rep a)) => t a -> Int#
-  size# a = gsize# (reproxyRep a)
-  {-# INLINE size# #-}
-
-  default readArray# :: ( Generic a
-                        , GTuple (Rep a)
-                        ) => MutableArray# s Any -> Int# -> State# s -> (# State# s, a #)
-  readArray# array i s = case greadArray# array i s of
-    (# s', a #) -> (# s', to a #)
-  {-# INLINE readArray# #-}
-
-  default writeArray# :: ( Generic a
-                         , GTuple (Rep a)
-                         ) => MutableArray# s Any -> Int# -> a -> State# s -> State# s
-  writeArray# array i a = gwriteArray# array i (from a)
-  {-# INLINE writeArray# #-}
-
-sizeOf# :: Tuple a => a -> Int#
-sizeOf# a = size# (proxy a)
-{-# INLINE sizeOf# #-}
-
-class GTuple a where
-#ifdef LANGUAGE_DataKinds
-  type GListRep (a :: * -> *) :: List *
-#else
-  type GListRep (a :: * -> *)
-#endif
-  gsize# :: t (a p) -> Int#
-  greadArray# :: MutableArray# s Any -> Int# -> State# s -> (# State# s, a p #)
-  gwriteArray# :: MutableArray# s Any -> Int# -> a p -> State# s -> State# s
-
-instance GTuple U1 where
-  type GListRep U1 = Nil
-  gsize# _ = 0#
-  greadArray# _ _ s = (# s, U1 #)
-  gwriteArray# _ _ _ s = s
-
-instance GTuple (K1 i c) where
-  type GListRep (K1 i c) = c :| Nil
-  gsize# _ = 1#
-  greadArray# array i s = case GHC.Exts.readArray# array i s of
-    (# s', a #) -> (# s', K1 (unsafeCoerce a) #)
-  gwriteArray# array i = GHC.Exts.writeArray# array i . unsafeCoerce . unK1
-
-instance GTuple f => GTuple (M1 i c f) where
-  type GListRep (M1 i c f) = GListRep f
-  gsize# a = gsize# (reproxyM1 a)
-  greadArray# array i s = case greadArray# array i s of
-    (# s', a #) -> (# s', M1 a #)
-  gwriteArray# array i = gwriteArray# array i . unM1
-
-instance (GTuple a, GTuple b) => GTuple (a :*: b) where
-  type GListRep (a :*: b) = Concat (GListRep a) (GListRep b)
-  gsize# a = gsize# (reproxyFst a) +# gsize# (reproxySnd a)
-  greadArray# array i s = case greadArray# array i s of
-    (# s', a #) -> case greadArray# array (i +# gsizeOf# a) s' of
-      (# s'', b #) -> (# s'', a :*: b #)
-  gwriteArray# array i (a :*: b) s = case gwriteArray# array i a s of
-    s' -> gwriteArray# array (i +# gsizeOf# a) b s'
-
-gsizeOf# :: GTuple a => a p -> Int#
-gsizeOf# a = gsize# (proxy a)
-{-# INLINE gsizeOf# #-}
-
-instance Tuple ()
-instance Tuple (a, b)
-instance Tuple (a, b, c)
-instance Tuple (a, b, c, d)
-instance Tuple (a, b, c, d, e)
-instance Tuple (a, b, c, d, e, f)
-instance Tuple (a, b, c, d, e, f, g)
-
-type ToList a = ListRep a
-
-type Field1 a = Find N0 (ToList a)
-type Field2 a = Find N1 (ToList a)
-type Field3 a = Find N2 (ToList a)
-type Field4 a = Find N3 (ToList a)
-type Field5 a = Find N4 (ToList a)
-type Field6 a = Find N5 (ToList a)
-type Field7 a = Find N6 (ToList a)
-type Field8 a = Find N7 (ToList a)
-type Field9 a = Find N8 (ToList a)
 
 instance ( MonadPrim m
          , s ~ World m
@@ -216,6 +97,22 @@ instance ( MonadPrim m
          ) => MField7 (ArrayTuple s) t a m where
   read7 = unsafeRead 6#
   write7 = unsafeWrite 6#
+
+instance ( MonadPrim m
+         , s ~ World m
+         , Tuple t
+         , a ~ Field8 t
+         ) => MField8 (ArrayTuple s) t a m where
+  read8 = unsafeRead 7#
+  write8 = unsafeWrite 7#
+
+instance ( MonadPrim m
+         , s ~ World m
+         , Tuple t
+         , a ~ Field9 t
+         ) => MField9 (ArrayTuple s) t a m where
+  read9 = unsafeRead 8#
+  write9 = unsafeWrite 8#
 
 unsafeRead :: MonadPrim m => Int# -> ArrayTuple (World m) t -> m a
 unsafeRead i (ArrayTuple array) = liftPrim $ \ s ->

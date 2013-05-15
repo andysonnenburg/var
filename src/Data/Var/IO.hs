@@ -21,6 +21,7 @@ import Control.Monad.ST.Safe (RealWorld)
 import Control.Monad.ST (RealWorld)
 #endif
 
+import Data.ByteArraySlice
 import Data.IOVar
 import Data.Var.ByteArray
 import Data.Var.Class

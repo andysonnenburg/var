@@ -23,6 +23,7 @@ import Control.Monad.ST
 import qualified Control.Monad.ST.Lazy as Lazy
 #endif
 
+import Data.ByteArraySlice
 import Data.STVar
 import Data.Var.ByteArray
 import Data.Var.Class

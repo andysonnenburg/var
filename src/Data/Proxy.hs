@@ -4,6 +4,7 @@ module Data.Proxy
        , proxy
        , reproxy
        , reproxyRep
+       , reproxyK1
        , reproxyM1
        , reproxyFst
        , reproxySnd
@@ -22,17 +23,21 @@ reproxy _ = Proxy
 {-# INLINE reproxy #-}
 
 reproxyRep :: t a -> Proxy (Rep a p)
-reproxyRep _ = Proxy
+reproxyRep = reproxy
 {-# INLINE reproxyRep #-}
 
+reproxyK1 :: t (K1 i c p) -> Proxy c
+reproxyK1 = reproxy
+{-# INLINE reproxyK1 #-}
+
 reproxyM1 :: t (M1 i c f p) -> Proxy (f p)
-reproxyM1 _ = Proxy
+reproxyM1 = reproxy
 {-# INLINE reproxyM1 #-}
 
 reproxyFst :: t ((f :*: g) p) -> Proxy (f p)
-reproxyFst _ = Proxy
+reproxyFst = reproxy
 {-# INLINE reproxyFst #-}
 
 reproxySnd :: t ((f :*: g) p) -> Proxy (g p)
-reproxySnd _ = Proxy
+reproxySnd = reproxy
 {-# INLINE reproxySnd #-}

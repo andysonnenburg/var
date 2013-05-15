@@ -25,21 +25,24 @@ flag strict-modifyRef
 library
   hs-source-dirs: src
   exposed-modules:
+    Data.ByteArraySlice
     Data.Tuple.IO
     Data.Tuple.MTuple
     Data.Tuple.ST
     Data.Var
-    Data.Var.ByteArraySlice
     Data.Var.Class
     Data.Var.IO
     Data.Var.ST
     Data.Var.Storable
   other-modules:
     Control.Monad.Prim.Class
+    Data.ByteArraySlice.Unsafe
     Data.IOVar
     Data.Proxy
     Data.STVar
     Data.Tuple.Array
+    Data.Tuple.ByteArray
+    Data.Tuple.Class
     Data.Var.ByteArray
     Type.List
     Type.Nat
@@ -53,8 +56,8 @@ library
     build-depends: base >= 4.6
     cpp-options: -DFUNCTION_Data_IORef_modifyRef_ -DFUNCTION_Data_STRef_modifyRef_
   if impl(ghc >= 7.2)
-    other-extensions: Trustworthy
-    cpp-options: -DLANGUAGE_Trustworthy
+    other-extensions: Safe, Trustworthy
+    cpp-options: -DLANGUAGE_Safe -DLANGUAGE_Trustworthy -DLANGUAGE_Unsafe
   if impl(ghc >= 7.2)
     cpp-options: -DLANGUAGE_DefaultSignatures 
   if impl(ghc >= 7.2 && < 7.6)
@@ -81,3 +84,10 @@ library
     UnboxedTuples,
     UndecidableInstances
   ghc-options: -Wall -fwarn-tabs -O2
+
+benchmark mutable
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+  main-is: mutable.hs
+  build-depends: base, criterion, array, var
+  ghc-options: -O2
