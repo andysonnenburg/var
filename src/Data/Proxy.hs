@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+#ifdef LANGUAGE_DataKinds
+{-# LANGUAGE PolyKinds #-}
+#endif
 {-# LANGUAGE TypeOperators #-}
 module Data.Proxy
        ( Proxy (..)
