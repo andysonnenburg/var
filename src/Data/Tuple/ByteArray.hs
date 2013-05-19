@@ -31,7 +31,8 @@ import Control.Monad.Prim.Class
 
 import Data.ByteArraySlice.Unsafe
 import Data.Proxy
-import Data.Tuple.Class
+import Data.Tuple.Fields
+import Data.Tuple.Fields.Extra
 import Data.Tuple.MTuple
 import Data.Typeable (Typeable)
 
@@ -44,7 +45,7 @@ instance Eq (ByteArrayTuple s a) where
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          ) => MTuple (ByteArrayTuple s) t m where
   thawTuple a = liftPrim $ \ s -> case newByteArray# (byteSizeOf# a) s of
@@ -54,7 +55,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , a ~ Field1 t
          , ByteArraySlice a
@@ -64,7 +65,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , a ~ Field2 t
@@ -75,7 +76,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
@@ -87,7 +88,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
@@ -100,7 +101,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
@@ -114,7 +115,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
@@ -129,7 +130,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
@@ -145,7 +146,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
@@ -162,7 +163,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , ByteArraySlice t
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
@@ -240,42 +241,18 @@ offset9# :: ( ByteArraySlice (Field1 a)
             ) => t a -> Int#
 offset9# a = offset8# a +# byteSize# (reproxyField8 a)
 
-proxyTuple :: t a -> Proxy a
-proxyTuple = reproxy
-
-reproxyField1 :: t a -> Proxy (Field1 a)
-reproxyField1 = reproxy
-
-reproxyField2 :: t a -> Proxy (Field2 a)
-reproxyField2 = reproxy
-
-reproxyField3 :: t a -> Proxy (Field3 a)
-reproxyField3 = reproxy
-
-reproxyField4 :: t a -> Proxy (Field4 a)
-reproxyField4 = reproxy
-
-reproxyField5 :: t a -> Proxy (Field5 a)
-reproxyField5 = reproxy
-
-reproxyField6 :: t a -> Proxy (Field6 a)
-reproxyField6 = reproxy
-
-reproxyField7 :: t a -> Proxy (Field7 a)
-reproxyField7 = reproxy
-
-reproxyField8 :: t a -> Proxy (Field8 a)
-reproxyField8 = reproxy
+proxyFields :: t a -> Proxy a
+proxyFields = reproxy
 
 unsafeRead :: ( ByteArraySlice a
               , MonadPrim m
               ) => (Proxy t -> Int#) -> ByteArrayTuple (World m) t -> m a
 unsafeRead offset t@(ByteArrayTuple array) =
-  liftPrim $ readByteArray# array (offset (proxyTuple t))
+  liftPrim $ readByteArray# array (offset (proxyFields t))
 
 unsafeWrite :: ( ByteArraySlice a
                , MonadPrim m
                ) => (Proxy t -> Int#) -> ByteArrayTuple (World m) t -> a -> m ()
 unsafeWrite offset t@(ByteArrayTuple array) a = liftPrim $ \ s ->
-  case writeByteArray# array (offset (proxyTuple t)) a s of
+  case writeByteArray# array (offset (proxyFields t)) a s of
     s' -> (# s', () #)

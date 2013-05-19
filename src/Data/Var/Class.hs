@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-#ifdef LANGUAGE_DefaultSignatures
+#ifdef FEATURE_MultiParamDefaultSignatures
 {-# LANGUAGE DefaultSignatures #-}
 #endif
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
@@ -19,7 +19,7 @@ import qualified Control.Monad.ST.Lazy.Safe as Lazy
 import Control.Monad.ST
 import qualified Control.Monad.ST.Lazy as Lazy
 #endif
-#ifdef LANGUAGE_DefaultSignatures
+#ifdef FEATURE_MultiParamDefaultSignatures
 import Control.Monad.Trans.Class
 #endif
 
@@ -36,7 +36,7 @@ class Monad m => Var var a m where
   modifyVar :: var a -> (a -> a) -> m ()
   modifyVar' :: var a -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
+#ifdef FEATURE_MultiParamDefaultSignatures
   default newVar :: (MonadTrans t, Var var a m) => a -> t m (var a)
   newVar = lift . newVar
 

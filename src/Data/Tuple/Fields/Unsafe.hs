@@ -21,8 +21,8 @@ Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
-module Data.Tuple.Class
-       ( Tuple (..)
+module Data.Tuple.Fields.Unsafe
+       ( Fields (..)
        , sizeOf#
        , Field1
        , Field2
@@ -45,7 +45,7 @@ import Type.Nat
 
 import Unsafe.Coerce (unsafeCoerce)
 
-class Tuple a where
+class Fields a where
 #ifdef LANGUAGE_DataKinds
   type ListRep a :: List *
 #else
@@ -56,30 +56,32 @@ class Tuple a where
   readArray# :: MutableArray# s Any -> Int# -> State# s -> (# State# s, a #)
   writeArray# :: MutableArray# s Any -> Int# -> a -> State# s -> State# s
 
+#ifdef FEATURE_TypeFamilyDefaults
   type ListRep a = GListRep (Rep a)
+#endif
 
-  default size# :: (Generic a, GTuple (Rep a)) => t a -> Int#
+  default size# :: (Generic a, GFields (Rep a)) => t a -> Int#
   size# a = gsize# (reproxyRep a)
   {-# INLINE size# #-}
 
   default readArray# :: ( Generic a
-                        , GTuple (Rep a)
+                        , GFields (Rep a)
                         ) => MutableArray# s Any -> Int# -> State# s -> (# State# s, a #)
   readArray# array i s = case greadArray# array i s of
     (# s', a #) -> (# s', to a #)
   {-# INLINE readArray# #-}
 
   default writeArray# :: ( Generic a
-                         , GTuple (Rep a)
+                         , GFields (Rep a)
                          ) => MutableArray# s Any -> Int# -> a -> State# s -> State# s
   writeArray# array i a = gwriteArray# array i (from a)
   {-# INLINE writeArray# #-}
 
-sizeOf# :: Tuple a => a -> Int#
+sizeOf# :: Fields a => a -> Int#
 sizeOf# a = size# (proxy a)
 {-# INLINE sizeOf# #-}
 
-class GTuple a where
+class GFields a where
 #ifdef LANGUAGE_DataKinds
   type GListRep a :: List *
 #else
@@ -89,7 +91,7 @@ class GTuple a where
   greadArray# :: MutableArray# s Any -> Int# -> State# s -> (# State# s, a p #)
   gwriteArray# :: MutableArray# s Any -> Int# -> a p -> State# s -> State# s
 
-instance GTuple U1 where
+instance GFields U1 where
   type GListRep U1 = Nil
   gsize# _ = 0#
   {-# INLINE gsize# #-}
@@ -98,7 +100,7 @@ instance GTuple U1 where
   gwriteArray# _ _ _ s = s
   {-# INLINE gwriteArray# #-}
 
-instance GTuple (K1 i c) where
+instance GFields (K1 i c) where
   type GListRep (K1 i c) = c :| Nil
   gsize# _ = 1#
   {-# INLINE gsize# #-}
@@ -108,7 +110,7 @@ instance GTuple (K1 i c) where
   gwriteArray# array i = GHC.Exts.writeArray# array i . unsafeCoerce . unK1
   {-# INLINE gwriteArray# #-}
 
-instance GTuple f => GTuple (M1 i c f) where
+instance GFields f => GFields (M1 i c f) where
   type GListRep (M1 i c f) = GListRep f
   gsize# a = gsize# (reproxyM1 a)
   {-# INLINE gsize# #-}
@@ -118,7 +120,7 @@ instance GTuple f => GTuple (M1 i c f) where
   gwriteArray# array i = gwriteArray# array i . unM1
   {-# INLINE gwriteArray# #-}
 
-instance (GTuple a, GTuple b) => GTuple (a :*: b) where
+instance (GFields a, GFields b) => GFields (a :*: b) where
   type GListRep (a :*: b) = Concat (GListRep a) (GListRep b)
   gsize# a = gsize# (reproxyFst a) +# gsize# (reproxySnd a)
   {-# INLINE gsize# #-}
@@ -128,17 +130,38 @@ instance (GTuple a, GTuple b) => GTuple (a :*: b) where
   gwriteArray# array i (a :*: b) s = case gwriteArray# array i a s of
     s' -> gwriteArray# array (i +# gsizeOf# a) b s'
 
-gsizeOf# :: GTuple a => a p -> Int#
+gsizeOf# :: GFields a => a p -> Int#
 gsizeOf# a = gsize# (proxy a)
 {-# INLINE gsizeOf# #-}
 
-instance Tuple ()
-instance Tuple (a, b)
-instance Tuple (a, b, c)
-instance Tuple (a, b, c, d)
-instance Tuple (a, b, c, d, e)
-instance Tuple (a, b, c, d, e, f)
-instance Tuple (a, b, c, d, e, f, g)
+instance Fields ()
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep () = GListRep (Rep ())
+#endif
+instance Fields (a, b)
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep (a, b) = GListRep (Rep (a, b))
+#endif
+instance Fields (a, b, c)
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep (a, b, c) = GListRep (Rep (a, b, c))
+#endif
+instance Fields (a, b, c, d)
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep (a, b, c, d) = GListRep (Rep (a, b, c, d))
+#endif
+instance Fields (a, b, c, d, e)
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep (a, b, c, d, e) = GListRep (Rep (a, b, c, d, e))
+#endif
+instance Fields (a, b, c, d, e, f)
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep (a, b, c, d, e, f) = GListRep (Rep (a, b, c, d, e, f))
+#endif
+instance Fields (a, b, c, d, e, f, g)
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep (a, b, c, d, e, f, g) = GListRep (Rep (a, b, c, d, e, f, g))
+#endif
 
 type ToList a = ListRep a
 

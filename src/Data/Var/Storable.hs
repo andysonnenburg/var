@@ -12,8 +12,8 @@ module Data.Var.Storable
        , StorableVar
        ) where
 
-import Data.Var.Class
 import Data.Data
+import Data.Var.Class
 
 import Foreign.ForeignPtr.Safe
 import Foreign.Storable
@@ -31,6 +31,6 @@ instance Storable a => Var StorableVar a IO where
   newVar a = do
     ptr <- mallocForeignPtr
     withForeignPtr ptr $ flip poke a
-    return (StorableVar ptr)
+    return $ StorableVar ptr
   readVar = flip withForeignPtr peek . unStorableVar
   writeVar (StorableVar ptr) = withForeignPtr ptr . flip poke

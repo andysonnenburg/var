@@ -22,7 +22,7 @@ module Data.Tuple.Array
 
 import Control.Monad.Prim.Class
 
-import Data.Tuple.Class
+import Data.Tuple.Fields.Unsafe
 import Data.Tuple.MTuple
 import Data.Typeable (Typeable)
 
@@ -36,7 +36,7 @@ data ArrayTuple s a = ArrayTuple (MutableArray# s Any) deriving Typeable
 instance Eq (ArrayTuple s a) where
   ArrayTuple a == ArrayTuple b = sameMutableArray# a b
 
-instance (MonadPrim m, s ~ World m, Tuple t) => MTuple (ArrayTuple s) t m where
+instance (MonadPrim m, s ~ World m, Fields t) => MTuple (ArrayTuple s) t m where
   thawTuple a = liftPrim $ \ s -> case newArray# (sizeOf# a) undefined s of
     (# s', array #) -> case writeArray# array 0# a s' of
       s'' -> (# s'', ArrayTuple array #)
@@ -44,7 +44,7 @@ instance (MonadPrim m, s ~ World m, Tuple t) => MTuple (ArrayTuple s) t m where
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field1 t
          ) => MField1 (ArrayTuple s) t a m where
   read1 = unsafeRead 0#
@@ -52,7 +52,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field2 t
          ) => MField2 (ArrayTuple s) t a m where
   read2 = unsafeRead 1#
@@ -60,7 +60,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field3 t
          ) => MField3 (ArrayTuple s) t a m where
   read3 = unsafeRead 2#
@@ -68,7 +68,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field4 t
          ) => MField4 (ArrayTuple s) t a m where
   read4 = unsafeRead 3#
@@ -76,7 +76,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field5 t
          ) => MField5 (ArrayTuple s) t a m where
   read5 = unsafeRead 4#
@@ -84,7 +84,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field6 t
          ) => MField6 (ArrayTuple s) t a m where
   read6 = unsafeRead 5#
@@ -92,7 +92,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field7 t
          ) => MField7 (ArrayTuple s) t a m where
   read7 = unsafeRead 6#
@@ -100,7 +100,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field8 t
          ) => MField8 (ArrayTuple s) t a m where
   read8 = unsafeRead 7#
@@ -108,7 +108,7 @@ instance ( MonadPrim m
 
 instance ( MonadPrim m
          , s ~ World m
-         , Tuple t
+         , Fields t
          , a ~ Field9 t
          ) => MField9 (ArrayTuple s) t a m where
   read9 = unsafeRead 8#

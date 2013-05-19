@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-#ifdef LANGUAGE_DefaultSignatures
+#ifdef FEATURE_MultiParamDefaultSignatures
 {-# LANGUAGE DefaultSignatures #-}
 #endif
 {-# LANGUAGE FunctionalDependencies, MultiParamTypeClasses #-}
@@ -23,33 +23,33 @@ module Data.Tuple.MTuple
        , MField9 (..)
        ) where
 
-#ifdef LANGUAGE_DefaultSignatures
+#ifdef FEATURE_MultiParamDefaultSignatures
 import Control.Monad.Trans.Class
 #endif
 
-class Monad m => MTuple var s m where
-  thawTuple :: s -> m (var s)
-  freezeTuple :: var s -> m s
+class Monad m => MTuple var t m where
+  thawTuple :: t -> m (var t)
+  freezeTuple :: var t -> m t
 
-#ifdef LANGUAGE_DefaultSignatures
-  default thawTuple :: (MonadTrans t, MTuple var s m) => s -> t m (var s)
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default thawTuple :: (MonadTrans t', MTuple var t m) => t -> t' m (var t)
   thawTuple = lift . thawTuple
 
-  default freezeTuple :: (MonadTrans t, MTuple var s m) => var s -> t m s
+  default freezeTuple :: (MonadTrans t', MTuple var t m) => var t -> t' m t
   freezeTuple = lift . freezeTuple
 #endif
 
-class MTuple var s m => MField1 var s a m | s -> a where
-  read1 :: var s -> m a
-  write1 :: var s -> a -> m ()
-  modify1 :: var s -> (a -> a) -> m ()
-  modify1' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField1 var t a m | t -> a where
+  read1 :: var t -> m a
+  write1 :: var t -> a -> m ()
+  modify1 :: var t -> (a -> a) -> m ()
+  modify1' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read1 :: (MonadTrans t, MField1 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read1 :: (MonadTrans t', MField1 var t a m) => var t -> t' m a
   read1 = lift . read1
 
-  default write1 :: (MonadTrans t, MField1 var s a m) => var s -> a -> t m ()
+  default write1 :: (MonadTrans t', MField1 var t a m) => var t -> a -> t' m ()
   write1 var = lift . write1 var
 #endif
 
@@ -57,17 +57,17 @@ class MTuple var s m => MField1 var s a m | s -> a where
 
   modify1' var f = read1 var >>= \ a -> write1 var $! f a
 
-class MTuple var s m => MField2 var s a m | s -> a where
-  read2 :: var s -> m a
-  write2 :: var s -> a -> m ()
-  modify2 :: var s -> (a -> a) -> m ()
-  modify2' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField2 var t a m | t -> a where
+  read2 :: var t -> m a
+  write2 :: var t -> a -> m ()
+  modify2 :: var t -> (a -> a) -> m ()
+  modify2' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read2 :: (MonadTrans t, MField2 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read2 :: (MonadTrans t', MField2 var t a m) => var t -> t' m a
   read2 = lift . read2
 
-  default write2 :: (MonadTrans t, MField2 var s a m) => var s -> a -> t m ()
+  default write2 :: (MonadTrans t', MField2 var t a m) => var t -> a -> t' m ()
   write2 var = lift . write2 var
 #endif
 
@@ -75,17 +75,17 @@ class MTuple var s m => MField2 var s a m | s -> a where
 
   modify2' var f = read2 var >>= \ a -> write2 var $! f a
 
-class MTuple var s m => MField3 var s a m | s -> a where
-  read3 :: var s -> m a
-  write3 :: var s -> a -> m ()
-  modify3 :: var s -> (a -> a) -> m ()
-  modify3' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField3 var t a m | t -> a where
+  read3 :: var t -> m a
+  write3 :: var t -> a -> m ()
+  modify3 :: var t -> (a -> a) -> m ()
+  modify3' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read3 :: (MonadTrans t, MField3 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read3 :: (MonadTrans t', MField3 var t a m) => var t -> t' m a
   read3 = lift . read3
 
-  default write3 :: (MonadTrans t, MField3 var s a m) => var s -> a -> t m ()
+  default write3 :: (MonadTrans t', MField3 var t a m) => var t -> a -> t' m ()
   write3 var = lift . write3 var
 #endif
 
@@ -93,17 +93,17 @@ class MTuple var s m => MField3 var s a m | s -> a where
 
   modify3' var f = read3 var >>= \ a -> write3 var $! f a
 
-class MTuple var s m => MField4 var s a m | s -> a where
-  read4 :: var s -> m a
-  write4 :: var s -> a -> m ()
-  modify4 :: var s -> (a -> a) -> m ()
-  modify4' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField4 var t a m | t -> a where
+  read4 :: var t -> m a
+  write4 :: var t -> a -> m ()
+  modify4 :: var t -> (a -> a) -> m ()
+  modify4' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read4 :: (MonadTrans t, MField4 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read4 :: (MonadTrans t', MField4 var t a m) => var t -> t' m a
   read4 = lift . read4
 
-  default write4 :: (MonadTrans t, MField4 var s a m) => var s -> a -> t m ()
+  default write4 :: (MonadTrans t', MField4 var t a m) => var t -> a -> t' m ()
   write4 var = lift . write4 var
 #endif
 
@@ -111,17 +111,17 @@ class MTuple var s m => MField4 var s a m | s -> a where
 
   modify4' var f = read4 var >>= \ a -> write4 var $! f a
 
-class MTuple var s m => MField5 var s a m | s -> a where
-  read5 :: var s -> m a
-  write5 :: var s -> a -> m ()
-  modify5 :: var s -> (a -> a) -> m ()
-  modify5' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField5 var t a m | t -> a where
+  read5 :: var t -> m a
+  write5 :: var t -> a -> m ()
+  modify5 :: var t -> (a -> a) -> m ()
+  modify5' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read5 :: (MonadTrans t, MField5 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read5 :: (MonadTrans t', MField5 var t a m) => var t -> t' m a
   read5 = lift . read5
 
-  default write5 :: (MonadTrans t, MField5 var s a m) => var s -> a -> t m ()
+  default write5 :: (MonadTrans t', MField5 var t a m) => var t -> a -> t' m ()
   write5 var = lift . write5 var
 #endif
 
@@ -129,17 +129,17 @@ class MTuple var s m => MField5 var s a m | s -> a where
 
   modify5' var f = read5 var >>= \ a -> write5 var $! f a
 
-class MTuple var s m => MField6 var s a m | s -> a where
-  read6 :: var s -> m a
-  write6 :: var s -> a -> m ()
-  modify6 :: var s -> (a -> a) -> m ()
-  modify6' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField6 var t a m | t -> a where
+  read6 :: var t -> m a
+  write6 :: var t -> a -> m ()
+  modify6 :: var t -> (a -> a) -> m ()
+  modify6' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read6 :: (MonadTrans t, MField6 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read6 :: (MonadTrans t', MField6 var t a m) => var t -> t' m a
   read6 = lift . read6
 
-  default write6 :: (MonadTrans t, MField6 var s a m) => var s -> a -> t m ()
+  default write6 :: (MonadTrans t', MField6 var t a m) => var t -> a -> t' m ()
   write6 var = lift . write6 var
 #endif
 
@@ -147,17 +147,17 @@ class MTuple var s m => MField6 var s a m | s -> a where
 
   modify6' var f = read6 var >>= \ a -> write6 var $! f a
 
-class MTuple var s m => MField7 var s a m | s -> a where
-  read7 :: var s -> m a
-  write7 :: var s -> a -> m ()
-  modify7 :: var s -> (a -> a) -> m ()
-  modify7' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField7 var t a m | t -> a where
+  read7 :: var t -> m a
+  write7 :: var t -> a -> m ()
+  modify7 :: var t -> (a -> a) -> m ()
+  modify7' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read7 :: (MonadTrans t, MField7 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read7 :: (MonadTrans t', MField7 var t a m) => var t -> t' m a
   read7 = lift . read7
 
-  default write7 :: (MonadTrans t, MField7 var s a m) => var s -> a -> t m ()
+  default write7 :: (MonadTrans t', MField7 var t a m) => var t -> a -> t' m ()
   write7 var = lift . write7 var
 #endif
 
@@ -165,17 +165,17 @@ class MTuple var s m => MField7 var s a m | s -> a where
 
   modify7' var f = read7 var >>= \ a -> write7 var $! f a
 
-class MTuple var s m => MField8 var s a m | s -> a where
-  read8 :: var s -> m a
-  write8 :: var s -> a -> m ()
-  modify8 :: var s -> (a -> a) -> m ()
-  modify8' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField8 var t a m | t -> a where
+  read8 :: var t -> m a
+  write8 :: var t -> a -> m ()
+  modify8 :: var t -> (a -> a) -> m ()
+  modify8' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read8 :: (MonadTrans t, MField8 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read8 :: (MonadTrans t', MField8 var t a m) => var t -> t' m a
   read8 = lift . read8
 
-  default write8 :: (MonadTrans t, MField8 var s a m) => var s -> a -> t m ()
+  default write8 :: (MonadTrans t', MField8 var t a m) => var t -> a -> t' m ()
   write8 var = lift . write8 var
 #endif
 
@@ -183,17 +183,17 @@ class MTuple var s m => MField8 var s a m | s -> a where
 
   modify8' var f = read8 var >>= \ a -> write8 var $! f a
 
-class MTuple var s m => MField9 var s a m | s -> a where
-  read9 :: var s -> m a
-  write9 :: var s -> a -> m ()
-  modify9 :: var s -> (a -> a) -> m ()
-  modify9' :: var s -> (a -> a) -> m ()
+class MTuple var t m => MField9 var t a m | t -> a where
+  read9 :: var t -> m a
+  write9 :: var t -> a -> m ()
+  modify9 :: var t -> (a -> a) -> m ()
+  modify9' :: var t -> (a -> a) -> m ()
 
-#ifdef LANGUAGE_DefaultSignatures
-  default read9 :: (MonadTrans t, MField9 var s a m) => var s -> t m a
+#ifdef FEATURE_MultiParamDefaultSignatures
+  default read9 :: (MonadTrans t', MField9 var t a m) => var t -> t' m a
   read9 = lift . read9
 
-  default write9 :: (MonadTrans t, MField9 var s a m) => var s -> a -> t m ()
+  default write9 :: (MonadTrans t', MField9 var t a m) => var t -> a -> t' m ()
   write9 var = lift . write9 var
 #endif
 

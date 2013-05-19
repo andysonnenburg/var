@@ -2,7 +2,10 @@
     CPP
   , DeriveDataTypeable
   , FlexibleInstances
-  , MultiParamTypeClasses #-}
+  , FlexibleContexts
+  , MultiParamTypeClasses
+  , TypeFamilies
+  , UndecidableInstances #-}
 {- |
 Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
@@ -25,6 +28,7 @@ import qualified Control.Monad.ST.Lazy as Lazy
 import Data.ByteArraySlice
 import Data.Tuple.Array
 import Data.Tuple.ByteArray
+import Data.Tuple.Fields
 import Data.Tuple.MTuple
 import Data.Typeable (Typeable)
 
@@ -32,883 +36,310 @@ newtype STTuple s a =
   STTuple { unSTTuple :: ArrayTuple s a
           } deriving (Eq, Typeable)
 
-instance MTuple (STTuple s) () (ST s) where
+instance Fields t => MTuple (STTuple s) t (ST s) where
   thawTuple = fmap STTuple . thawTuple
   freezeTuple = freezeTuple . unSTTuple
 
-instance MTuple (STTuple s) (a, b) (ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c) (ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d) (ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d, e) (ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d, e, f) (ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d, e, f, g) (ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MField1 (STTuple s) (a, b) a (ST s) where
+instance (Fields t, a ~ Field1 t) => MField1 (STTuple s) t a (ST s) where
   read1 = read1 . unSTTuple
   write1 = write1 . unSTTuple
 
-instance MField1 (STTuple s) (a, b, c) a (ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d) a (ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d, e) a (ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d, e, f) a (ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d, e, f, g) a (ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField2 (STTuple s) (a, b) b (ST s) where
+instance (Fields t, a ~ Field2 t) => MField2 (STTuple s) t a (ST s) where
   read2 = read2 . unSTTuple
   write2 = write2 . unSTTuple
 
-instance MField2 (STTuple s) (a, b, c) b (ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d) b (ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d, e) b (ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d, e, f) b (ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d, e, f, g) b (ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c) c (ST s) where
+instance (Fields t, a ~ Field3 t) => MField3 (STTuple s) t a (ST s) where
   read3 = read3 . unSTTuple
   write3 = write3 . unSTTuple
 
-instance MField3 (STTuple s) (a, b, c, d) c (ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c, d, e) c (ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c, d, e, f) c (ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c, d, e, f, g) c (ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField4 (STTuple s) (a, b, c, d) d (ST s) where
+instance (Fields t, a ~ Field4 t) => MField4 (STTuple s) t a (ST s) where
   read4 = read4 . unSTTuple
   write4 = write4 . unSTTuple
 
-instance MField4 (STTuple s) (a, b, c, d, e) d (ST s) where
-  read4 = read4 . unSTTuple
-  write4 = write4 . unSTTuple
-
-instance MField4 (STTuple s) (a, b, c, d, e, f) d (ST s) where
-  read4 = read4 . unSTTuple
-  write4 = write4 . unSTTuple
-
-instance MField4 (STTuple s) (a, b, c, d, e, f, g) d (ST s) where
-  read4 = read4 . unSTTuple
-  write4 = write4 . unSTTuple
-
-instance MField5 (STTuple s) (a, b, c, d, e) e (ST s) where
+instance (Fields t, a ~ Field5 t) => MField5 (STTuple s) t a (ST s) where
   read5 = read5 . unSTTuple
   write5 = write5 . unSTTuple
 
-instance MField5 (STTuple s) (a, b, c, d, e, f) e (ST s) where
-  read5 = read5 . unSTTuple
-  write5 = write5 . unSTTuple
-
-instance MField5 (STTuple s) (a, b, c, d, e, f, g) e (ST s) where
-  read5 = read5 . unSTTuple
-  write5 = write5 . unSTTuple
-
-instance MField6 (STTuple s) (a, b, c, d, e, f) f (ST s) where
+instance (Fields t, a ~ Field6 t) => MField6 (STTuple s) t a (ST s) where
   read6 = read6 . unSTTuple
   write6 = write6 . unSTTuple
 
-instance MField6 (STTuple s) (a, b, c, d, e, f, g) f (ST s) where
-  read6 = read6 . unSTTuple
-  write6 = write6 . unSTTuple
-
-instance MField7 (STTuple s) (a, b, c, d, e, f, g) g (ST s) where
+instance (Fields t, a ~ Field7 t) => MField7 (STTuple s) t a (ST s) where
   read7 = read7 . unSTTuple
   write7 = write7 . unSTTuple
 
-instance MTuple (STTuple s) () (Lazy.ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
+instance (Fields t, a ~ Field8 t) => MField8 (STTuple s) t a (ST s) where
+  read8 = read8 . unSTTuple
+  write8 = write8 . unSTTuple
 
-instance MTuple (STTuple s) (a, b) (Lazy.ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c) (Lazy.ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d) (Lazy.ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d, e) (Lazy.ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d, e, f) (Lazy.ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MTuple (STTuple s) (a, b, c, d, e, f, g) (Lazy.ST s) where
-  thawTuple = fmap STTuple . thawTuple
-  freezeTuple = freezeTuple . unSTTuple
-
-instance MField1 (STTuple s) (a, b) a (Lazy.ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c) a (Lazy.ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d) a (Lazy.ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d, e) a (Lazy.ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d, e, f) a (Lazy.ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField1 (STTuple s) (a, b, c, d, e, f, g) a (Lazy.ST s) where
-  read1 = read1 . unSTTuple
-  write1 = write1 . unSTTuple
-
-instance MField2 (STTuple s) (a, b) b (Lazy.ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c) b (Lazy.ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d) b (Lazy.ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d, e) b (Lazy.ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d, e, f) b (Lazy.ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField2 (STTuple s) (a, b, c, d, e, f, g) b (Lazy.ST s) where
-  read2 = read2 . unSTTuple
-  write2 = write2 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c) c (Lazy.ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c, d) c (Lazy.ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c, d, e) c (Lazy.ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c, d, e, f) c (Lazy.ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField3 (STTuple s) (a, b, c, d, e, f, g) c (Lazy.ST s) where
-  read3 = read3 . unSTTuple
-  write3 = write3 . unSTTuple
-
-instance MField4 (STTuple s) (a, b, c, d) d (Lazy.ST s) where
-  read4 = read4 . unSTTuple
-  write4 = write4 . unSTTuple
-
-instance MField4 (STTuple s) (a, b, c, d, e) d (Lazy.ST s) where
-  read4 = read4 . unSTTuple
-  write4 = write4 . unSTTuple
-
-instance MField4 (STTuple s) (a, b, c, d, e, f) d (Lazy.ST s) where
-  read4 = read4 . unSTTuple
-  write4 = write4 . unSTTuple
-
-instance MField4 (STTuple s) (a, b, c, d, e, f, g) d (Lazy.ST s) where
-  read4 = read4 . unSTTuple
-  write4 = write4 . unSTTuple
-
-instance MField5 (STTuple s) (a, b, c, d, e) e (Lazy.ST s) where
-  read5 = read5 . unSTTuple
-  write5 = write5 . unSTTuple
-
-instance MField5 (STTuple s) (a, b, c, d, e, f) e (Lazy.ST s) where
-  read5 = read5 . unSTTuple
-  write5 = write5 . unSTTuple
-
-instance MField5 (STTuple s) (a, b, c, d, e, f, g) e (Lazy.ST s) where
-  read5 = read5 . unSTTuple
-  write5 = write5 . unSTTuple
-
-instance MField6 (STTuple s) (a, b, c, d, e, f) f (Lazy.ST s) where
-  read6 = read6 . unSTTuple
-  write6 = write6 . unSTTuple
-
-instance MField6 (STTuple s) (a, b, c, d, e, f, g) f (Lazy.ST s) where
-  read6 = read6 . unSTTuple
-  write6 = write6 . unSTTuple
-
-instance MField7 (STTuple s) (a, b, c, d, e, f, g) g (Lazy.ST s) where
-  read7 = read7 . unSTTuple
-  write7 = write7 . unSTTuple
+instance (Fields t, a ~ Field9 t) => MField9 (STTuple s) t a (ST s) where
+  read9 = read9 . unSTTuple
+  write9 = write9 . unSTTuple
 
 newtype STUTuple s a =
   STUTuple { unSTUTuple :: ByteArrayTuple s a
            } deriving (Eq, Typeable)
 
-instance MTuple (STUTuple s) () (ST s) where
+instance (Fields t, ByteArraySlice t) => MTuple (STUTuple s) t (ST s) where
   thawTuple = fmap STUTuple . thawTuple
   freezeTuple = freezeTuple . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         ) => MTuple (STUTuple s) (a, b) (ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MTuple (STUTuple s) (a, b, c) (ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MTuple (STUTuple s) (a, b, c, d) (ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MTuple (STUTuple s) (a, b, c, d, e) (ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MTuple (STUTuple s) (a, b, c, d, e, f) (ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MTuple (STUTuple s) (a, b, c, d, e, f, g) (ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         ) => MField1 (STUTuple s) (a, b) a (ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , a ~ Field1 t
+         , ByteArraySlice a
+         ) => MField1 (STUTuple s) t a (ST s) where
   read1 = read1 . unSTUTuple
   write1 = write1 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MField1 (STUTuple s) (a, b, c) a (ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField1 (STUTuple s) (a, b, c, d) a (ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField1 (STUTuple s) (a, b, c, d, e) a (ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField1 (STUTuple s) (a, b, c, d, e, f) a (ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField1 (STUTuple s) (a, b, c, d, e, f, g) a (ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         ) => MField2 (STUTuple s) (a, b) b (ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , a ~ Field2 t
+         , ByteArraySlice a
+         ) => MField2 (STUTuple s) t a (ST s) where
   read2 = read2 . unSTUTuple
   write2 = write2 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MField2 (STUTuple s) (a, b, c) b (ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField2 (STUTuple s) (a, b, c, d) b (ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField2 (STUTuple s) (a, b, c, d, e) b (ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField2 (STUTuple s) (a, b, c, d, e, f) b (ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField2 (STUTuple s) (a, b, c, d, e, f, g) b (ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MField3 (STUTuple s) (a, b, c) c (ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , a ~ Field3 t
+         , ByteArraySlice a
+         ) => MField3 (STUTuple s) t a (ST s) where
   read3 = read3 . unSTUTuple
   write3 = write3 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField3 (STUTuple s) (a, b, c, d) c (ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField3 (STUTuple s) (a, b, c, d, e) c (ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField3 (STUTuple s) (a, b, c, d, e, f) c (ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField3 (STUTuple s) (a, b, c, d, e, f, g) c (ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField4 (STUTuple s) (a, b, c, d) d (ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , a ~ Field4 t
+         , ByteArraySlice a
+         ) => MField4 (STUTuple s) t a (ST s) where
   read4 = read4 . unSTUTuple
   write4 = write4 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField4 (STUTuple s) (a, b, c, d, e) d (ST s) where
-  read4 = read4 . unSTUTuple
-  write4 = write4 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField4 (STUTuple s) (a, b, c, d, e, f) d (ST s) where
-  read4 = read4 . unSTUTuple
-  write4 = write4 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField4 (STUTuple s) (a, b, c, d, e, f, g) d (ST s) where
-  read4 = read4 . unSTUTuple
-  write4 = write4 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField5 (STUTuple s) (a, b, c, d, e) e (ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , a ~ Field5 t
+         , ByteArraySlice a
+         ) => MField5 (STUTuple s) t a (ST s) where
   read5 = read5 . unSTUTuple
   write5 = write5 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField5 (STUTuple s) (a, b, c, d, e, f) e (ST s) where
-  read5 = read5 . unSTUTuple
-  write5 = write5 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField5 (STUTuple s) (a, b, c, d, e, f, g) e (ST s) where
-  read5 = read5 . unSTUTuple
-  write5 = write5 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField6 (STUTuple s) (a, b, c, d, e, f) f (ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , a ~ Field6 t
+         , ByteArraySlice a
+         ) => MField6 (STUTuple s) t a (ST s) where
   read6 = read6 . unSTUTuple
   write6 = write6 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField6 (STUTuple s) (a, b, c, d, e, f, g) f (ST s) where
-  read6 = read6 . unSTUTuple
-  write6 = write6 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField7 (STUTuple s) (a, b, c, d, e, f, g) g (ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , ByteArraySlice (Field6 t)
+         , a ~ Field7 t
+         , ByteArraySlice a
+         ) => MField7 (STUTuple s) t a (ST s) where
   read7 = read7 . unSTUTuple
   write7 = write7 . unSTUTuple
 
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , ByteArraySlice (Field6 t)
+         , ByteArraySlice (Field7 t)
+         , a ~ Field8 t
+         , ByteArraySlice a
+         ) => MField8 (STUTuple s) t a (ST s) where
+  read8 = read8 . unSTUTuple
+  write8 = write8 . unSTUTuple
 
-instance MTuple (STUTuple s) () (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , ByteArraySlice (Field6 t)
+         , ByteArraySlice (Field7 t)
+         , ByteArraySlice (Field8 t)
+         , a ~ Field9 t
+         , ByteArraySlice a
+         ) => MField9 (STUTuple s) t a (ST s) where
+  read9 = read9 . unSTUTuple
+  write9 = write9 . unSTUTuple
+
+instance Fields t => MTuple (STTuple s) t (Lazy.ST s) where
+  thawTuple = fmap STTuple . thawTuple
+  freezeTuple = freezeTuple . unSTTuple
+
+instance (Fields t, a ~ Field1 t) => MField1 (STTuple s) t a (Lazy.ST s) where
+  read1 = read1 . unSTTuple
+  write1 = write1 . unSTTuple
+
+instance (Fields t, a ~ Field2 t) => MField2 (STTuple s) t a (Lazy.ST s) where
+  read2 = read2 . unSTTuple
+  write2 = write2 . unSTTuple
+
+instance (Fields t, a ~ Field3 t) => MField3 (STTuple s) t a (Lazy.ST s) where
+  read3 = read3 . unSTTuple
+  write3 = write3 . unSTTuple
+
+instance (Fields t, a ~ Field4 t) => MField4 (STTuple s) t a (Lazy.ST s) where
+  read4 = read4 . unSTTuple
+  write4 = write4 . unSTTuple
+
+instance (Fields t, a ~ Field5 t) => MField5 (STTuple s) t a (Lazy.ST s) where
+  read5 = read5 . unSTTuple
+  write5 = write5 . unSTTuple
+
+instance (Fields t, a ~ Field6 t) => MField6 (STTuple s) t a (Lazy.ST s) where
+  read6 = read6 . unSTTuple
+  write6 = write6 . unSTTuple
+
+instance (Fields t, a ~ Field7 t) => MField7 (STTuple s) t a (Lazy.ST s) where
+  read7 = read7 . unSTTuple
+  write7 = write7 . unSTTuple
+
+instance (Fields t, a ~ Field8 t) => MField8 (STTuple s) t a (Lazy.ST s) where
+  read8 = read8 . unSTTuple
+  write8 = write8 . unSTTuple
+
+instance (Fields t, a ~ Field9 t) => MField9 (STTuple s) t a (Lazy.ST s) where
+  read9 = read9 . unSTTuple
+  write9 = write9 . unSTTuple
+
+instance (Fields t, ByteArraySlice t) => MTuple (STUTuple s) t (Lazy.ST s) where
   thawTuple = fmap STUTuple . thawTuple
   freezeTuple = freezeTuple . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         ) => MTuple (STUTuple s) (a, b) (Lazy.ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MTuple (STUTuple s) (a, b, c) (Lazy.ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MTuple (STUTuple s) (a, b, c, d) (Lazy.ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MTuple (STUTuple s) (a, b, c, d, e) (Lazy.ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MTuple (STUTuple s) (a, b, c, d, e, f) (Lazy.ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MTuple (STUTuple s) (a, b, c, d, e, f, g) (Lazy.ST s) where
-  thawTuple = fmap STUTuple . thawTuple
-  freezeTuple = freezeTuple . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         ) => MField1 (STUTuple s) (a, b) a (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , a ~ Field1 t
+         , ByteArraySlice a
+         ) => MField1 (STUTuple s) t a (Lazy.ST s) where
   read1 = read1 . unSTUTuple
   write1 = write1 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MField1 (STUTuple s) (a, b, c) a (Lazy.ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField1 (STUTuple s) (a, b, c, d) a (Lazy.ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField1 (STUTuple s) (a, b, c, d, e) a (Lazy.ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField1 (STUTuple s) (a, b, c, d, e, f) a (Lazy.ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField1 (STUTuple s) (a, b, c, d, e, f, g) a (Lazy.ST s) where
-  read1 = read1 . unSTUTuple
-  write1 = write1 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         ) => MField2 (STUTuple s) (a, b) b (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , a ~ Field2 t
+         , ByteArraySlice a
+         ) => MField2 (STUTuple s) t a (Lazy.ST s) where
   read2 = read2 . unSTUTuple
   write2 = write2 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MField2 (STUTuple s) (a, b, c) b (Lazy.ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField2 (STUTuple s) (a, b, c, d) b (Lazy.ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField2 (STUTuple s) (a, b, c, d, e) b (Lazy.ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField2 (STUTuple s) (a, b, c, d, e, f) b (Lazy.ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField2 (STUTuple s) (a, b, c, d, e, f, g) b (Lazy.ST s) where
-  read2 = read2 . unSTUTuple
-  write2 = write2 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         ) => MField3 (STUTuple s) (a, b, c) c (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , a ~ Field3 t
+         , ByteArraySlice a
+         ) => MField3 (STUTuple s) t a (Lazy.ST s) where
   read3 = read3 . unSTUTuple
   write3 = write3 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField3 (STUTuple s) (a, b, c, d) c (Lazy.ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField3 (STUTuple s) (a, b, c, d, e) c (Lazy.ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField3 (STUTuple s) (a, b, c, d, e, f) c (Lazy.ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField3 (STUTuple s) (a, b, c, d, e, f, g) c (Lazy.ST s) where
-  read3 = read3 . unSTUTuple
-  write3 = write3 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         ) => MField4 (STUTuple s) (a, b, c, d) d (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , a ~ Field4 t
+         , ByteArraySlice a
+         ) => MField4 (STUTuple s) t a (Lazy.ST s) where
   read4 = read4 . unSTUTuple
   write4 = write4 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField4 (STUTuple s) (a, b, c, d, e) d (Lazy.ST s) where
-  read4 = read4 . unSTUTuple
-  write4 = write4 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField4 (STUTuple s) (a, b, c, d, e, f) d (Lazy.ST s) where
-  read4 = read4 . unSTUTuple
-  write4 = write4 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField4 (STUTuple s) (a, b, c, d, e, f, g) d (Lazy.ST s) where
-  read4 = read4 . unSTUTuple
-  write4 = write4 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         ) => MField5 (STUTuple s) (a, b, c, d, e) e (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , a ~ Field5 t
+         , ByteArraySlice a
+         ) => MField5 (STUTuple s) t a (Lazy.ST s) where
   read5 = read5 . unSTUTuple
   write5 = write5 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField5 (STUTuple s) (a, b, c, d, e, f) e (Lazy.ST s) where
-  read5 = read5 . unSTUTuple
-  write5 = write5 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField5 (STUTuple s) (a, b, c, d, e, f, g) e (Lazy.ST s) where
-  read5 = read5 . unSTUTuple
-  write5 = write5 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         ) => MField6 (STUTuple s) (a, b, c, d, e, f) f (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , a ~ Field6 t
+         , ByteArraySlice a
+         ) => MField6 (STUTuple s) t a (Lazy.ST s) where
   read6 = read6 . unSTUTuple
   write6 = write6 . unSTUTuple
 
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField6 (STUTuple s) (a, b, c, d, e, f, g) f (Lazy.ST s) where
-  read6 = read6 . unSTUTuple
-  write6 = write6 . unSTUTuple
-
-instance ( ByteArraySlice a
-         , ByteArraySlice b
-         , ByteArraySlice c
-         , ByteArraySlice d
-         , ByteArraySlice e
-         , ByteArraySlice f
-         , ByteArraySlice g
-         ) => MField7 (STUTuple s) (a, b, c, d, e, f, g) g (Lazy.ST s) where
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , ByteArraySlice (Field6 t)
+         , a ~ Field7 t
+         , ByteArraySlice a
+         ) => MField7 (STUTuple s) t a (Lazy.ST s) where
   read7 = read7 . unSTUTuple
   write7 = write7 . unSTUTuple
+
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , ByteArraySlice (Field6 t)
+         , ByteArraySlice (Field7 t)
+         , a ~ Field8 t
+         , ByteArraySlice a
+         ) => MField8 (STUTuple s) t a (Lazy.ST s) where
+  read8 = read8 . unSTUTuple
+  write8 = write8 . unSTUTuple
+
+instance ( Fields t
+         , ByteArraySlice t
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , ByteArraySlice (Field6 t)
+         , ByteArraySlice (Field7 t)
+         , ByteArraySlice (Field8 t)
+         , a ~ Field9 t
+         , ByteArraySlice a
+         ) => MField9 (STUTuple s) t a (Lazy.ST s) where
+  read9 = read9 . unSTUTuple
+  write9 = write9 . unSTUTuple

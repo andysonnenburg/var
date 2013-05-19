@@ -26,9 +26,11 @@ library
   hs-source-dirs: src
   exposed-modules:
     Data.ByteArraySlice
+    Data.Tuple.Fields
     Data.Tuple.IO
     Data.Tuple.MTuple
     Data.Tuple.ST
+    Data.Tuple.Storable
     Data.Var
     Data.Var.Class
     Data.Var.IO
@@ -42,7 +44,8 @@ library
     Data.STVar
     Data.Tuple.Array
     Data.Tuple.ByteArray
-    Data.Tuple.Class
+    Data.Tuple.Fields.Extra
+    Data.Tuple.Fields.Unsafe
     Data.Var.ByteArray
     Type.List
     Type.Nat
@@ -57,9 +60,15 @@ library
     cpp-options: -DFUNCTION_Data_IORef_modifyRef_ -DFUNCTION_Data_STRef_modifyRef_
   if impl(ghc >= 7.2)
     other-extensions: Safe, Trustworthy
-    cpp-options: -DLANGUAGE_Safe -DLANGUAGE_Trustworthy -DLANGUAGE_Unsafe
+    cpp-options: -DLANGUAGE_Safe -DLANGUAGE_Trustworthy
+  if impl(ghc >= 7.4)
+    cpp-options: -DLANGUAGE_Unsafe
   if impl(ghc >= 7.2)
     cpp-options: -DLANGUAGE_DefaultSignatures 
+  if impl(ghc >= 7.4)
+    cpp-options: -DFEATURE_MultiParamDefaultSignatures
+  if impl(ghc >= 7.4)
+    cpp-options: -DFEATURE_TypeFamilyDefaults
   if impl(ghc >= 7.2 && < 7.6)
     build-depends: ghc-prim
   if impl(ghc >= 7.4)
@@ -90,4 +99,4 @@ benchmark mutable
   hs-source-dirs: benchmarks
   main-is: mutable.hs
   build-depends: base, criterion, array, var
-  ghc-options: -O2
+  ghc-options: -Wall -fwarn-tabs -O2
