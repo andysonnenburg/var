@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, TemplateHaskell #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Main (main) where
 
@@ -14,8 +14,8 @@ import Data.Var.Storable
 
 import Foreign.Storable
 
+import Test.Framework
 import Test.Framework.Providers.QuickCheck2
-import Test.Framework.TH
 import Test.QuickCheck.Monadic
 
 varLaws var a = do
@@ -118,4 +118,13 @@ thawStorableTuple5 :: ( Storable a
 thawStorableTuple5 = thawTuple
 
 main :: IO ()
-main = $defaultMainGenerator
+main = defaultMain
+       [ testProperty "IOUVar" prop_IOUVar
+       , testProperty "STUVar" prop_STUVar
+       , testProperty "StorableVar" prop_StorableVar
+       , testProperty "IOTuple" prop_IOTuple
+       , testProperty "IOUTuple" prop_IOUTuple
+       , testProperty "STTuple" prop_STTuple
+       , testProperty "STUTuple" prop_STUTuple
+       , testProperty "StorableTuple" prop_StorableTuple
+       ]

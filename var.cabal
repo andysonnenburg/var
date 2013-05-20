@@ -103,7 +103,6 @@ test-suite properties
     QuickCheck,
     test-framework,
     test-framework-quickcheck2,
-    test-framework-th,
     var
   ghc-options: -Wall -fwarn-tabs -O2
 
