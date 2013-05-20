@@ -18,7 +18,7 @@ module Data.Tuple.Storable
        , StorableTuple
        ) where
 
-import Data.Data
+import Data.Data (Data (..), Typeable, mkNoRepType)
 import Data.Proxy
 import Data.Tuple.Fields
 import Data.Tuple.Fields.Extra

@@ -94,6 +94,19 @@ library
     UndecidableInstances
   ghc-options: -Wall -fwarn-tabs -O2
 
+test-suite properties
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is: properties.hs
+  build-depends:
+    base,
+    QuickCheck,
+    test-framework,
+    test-framework-quickcheck2,
+    test-framework-th,
+    var
+  ghc-options: -Wall -fwarn-tabs -O2
+
 benchmark mutable
   type: exitcode-stdio-1.0
   hs-source-dirs: benchmarks
