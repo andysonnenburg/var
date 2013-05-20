@@ -48,7 +48,7 @@ instance ( MonadPrim m
          , Fields t
          , ByteArraySlice t
          ) => MTuple (ByteArrayTuple s) t m where
-  thawTuple a = liftPrim $ \ s -> case newByteArray# (byteSizeOf# a) s of
+  thawTuple a = liftPrim $ \ s -> case newPinnedByteArray# (byteSizeOf# a) s of
     (# s', array #) -> case writeByteArray# array 0# a s' of
       s'' -> (# s'', ByteArrayTuple array #)
   freezeTuple (ByteArrayTuple array) = liftPrim $ readByteArray# array 0#
