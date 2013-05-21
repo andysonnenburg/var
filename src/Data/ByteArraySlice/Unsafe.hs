@@ -62,28 +62,40 @@ class GByteArraySlice a where
 
 instance GByteArraySlice U1 where
   gbyteSize _ = 0
+  {-# INLINE gbyteSize #-}
   greadByteArray _ _ = return U1
+  {-# INLINE greadByteArray #-}
   gwriteByteArray _ _ _ = return ()
+  {-# INLINE gwriteByteArray #-}
 
 instance ByteArraySlice c => GByteArraySlice (K1 i c) where
   gbyteSize = byteSize . reproxyK1
+  {-# INLINE gbyteSize #-}
   greadByteArray array = liftM K1 . readByteArray array
+  {-# INLINE greadByteArray #-}
   gwriteByteArray array i = writeByteArray array i . unK1
+  {-# INLINE gwriteByteArray #-}
 
 instance GByteArraySlice f => GByteArraySlice (M1 i c f) where
   gbyteSize = gbyteSize . reproxyM1
+  {-# INLINE gbyteSize #-}
   greadByteArray array = liftM M1 . greadByteArray array
+  {-# INLINE greadByteArray #-}
   gwriteByteArray array i = gwriteByteArray array i . unM1
+  {-# INLINE gwriteByteArray #-}
 
 instance (GByteArraySlice a, GByteArraySlice b) => GByteArraySlice (a :*: b) where
   gbyteSize a = gbyteSize (reproxyFst a) + gbyteSize (reproxySnd a)
+  {-# INLINE gbyteSize #-}
   greadByteArray array i = do
     a <- greadByteArray array i
     b <- greadByteArray array (i + gbyteSizeOf a)
     return $ a :*: b
+  {-# INLINE greadByteArray #-}
   gwriteByteArray array i (a :*: b) = do
     gwriteByteArray array i a
     gwriteByteArray array (i + gbyteSizeOf a) b
+  {-# INLINE gwriteByteArray #-}
 
 gbyteSizeOf :: GByteArraySlice a => a p -> Int
 gbyteSizeOf a = gbyteSize (proxy a)
@@ -171,7 +183,7 @@ instance ByteArraySlice Double where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Int8 where
-  byteSize _ = 1
+  byteSize _ = SIZEOF_INT8
   {-# INLINE byteSize #-}
   readByteArray = readInt8Array
   {-# INLINE readByteArray #-}
@@ -179,7 +191,7 @@ instance ByteArraySlice Int8 where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Int16 where
-  byteSize _ = 2
+  byteSize _ = SIZEOF_INT16
   {-# INLINE byteSize #-}
   readByteArray = readInt16Array
   {-# INLINE readByteArray #-}
@@ -187,7 +199,7 @@ instance ByteArraySlice Int16 where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Int32 where
-  byteSize _ = 4
+  byteSize _ = SIZEOF_INT32
   {-# INLINE byteSize #-}
   readByteArray = readInt32Array
   {-# INLINE readByteArray #-}
@@ -195,7 +207,7 @@ instance ByteArraySlice Int32 where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Int64 where
-  byteSize _ = 8
+  byteSize _ = SIZEOF_INT64
   {-# INLINE byteSize #-}
   readByteArray = readInt64Array
   {-# INLINE readByteArray #-}
@@ -203,7 +215,7 @@ instance ByteArraySlice Int64 where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Word8 where
-  byteSize _ = 1
+  byteSize _ = SIZEOF_WORD8
   {-# INLINE byteSize #-}
   readByteArray = readWord8Array
   {-# INLINE readByteArray #-}
@@ -211,7 +223,7 @@ instance ByteArraySlice Word8 where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Word16 where
-  byteSize _ = 2
+  byteSize _ = SIZEOF_WORD16
   {-# INLINE byteSize #-}
   readByteArray = readWord16Array
   {-# INLINE readByteArray #-}
@@ -219,7 +231,7 @@ instance ByteArraySlice Word16 where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Word32 where
-  byteSize _ = 4
+  byteSize _ = SIZEOF_WORD32
   {-# INLINE byteSize #-}
   readByteArray = readWord32Array
   {-# INLINE readByteArray #-}
@@ -227,7 +239,7 @@ instance ByteArraySlice Word32 where
   {-# INLINE writeByteArray #-}
 
 instance ByteArraySlice Word64 where
-  byteSize _ = 8
+  byteSize _ = SIZEOF_WORD64
   {-# INLINE byteSize #-}
   readByteArray = readWord64Array
   {-# INLINE readByteArray #-}
