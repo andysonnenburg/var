@@ -40,6 +40,7 @@ library
     Control.Monad.Prim.Class
     Data.ByteArraySlice.Unsafe
     Data.IOVar
+    Data.Prim.ByteArray
     Data.Proxy
     Data.STVar
     Data.Tuple.Array

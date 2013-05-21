@@ -2,9 +2,7 @@
     CPP
   , DeriveDataTypeable
   , FlexibleInstances
-  , MagicHash
-  , MultiParamTypeClasses
-  , UnboxedTuples #-}
+  , MultiParamTypeClasses #-}
 #ifdef LANGUAGE_Trustworthy
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -21,24 +19,19 @@ module Data.Var.ByteArray
 import Control.Monad.Prim.Class
 
 import Data.ByteArraySlice.Unsafe
+import Data.Prim.ByteArray
 import Data.Var.Class
 import Data.Typeable (Typeable)
 
-import GHC.Exts
-
-data ByteArrayVar s a = ByteArrayVar (MutableByteArray# s) deriving Typeable
-
-instance Eq (ByteArrayVar s a) where
-  ByteArrayVar a == ByteArrayVar b = sameMutableByteArray# a b
+newtype ByteArrayVar s a = ByteArrayVar (MutableByteArray s) deriving (Eq, Typeable)
 
 instance (ByteArraySlice a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
-  newVar a = liftPrim $ \ s -> case newByteArray# (byteSizeOf# a) s of
-    (# s', array #) -> case writeByteArray# array 0# a s' of
-      s'' -> (# s'', ByteArrayVar array #)
+  newVar a = do
+    array <- newByteArray (byteSizeOf a)
+    writeByteArray array 0 a
+    return $ ByteArrayVar array
   {-# INLINE newVar #-}
-  readVar (ByteArrayVar array) = liftPrim $ readByteArray# array 0#
+  readVar (ByteArrayVar array) = readByteArray array 0
   {-# INLINE readVar #-}
-  writeVar (ByteArrayVar array) a = liftPrim $ \ s ->
-    case writeByteArray# array 0# a s of
-      s' -> (# s', () #)
+  writeVar (ByteArrayVar array) = writeByteArray array 0
   {-# INLINE writeVar #-}
