@@ -10,12 +10,15 @@ Maintainer  :  andy22286@gmail.com
 module Data.Var.Storable
        ( module Data.Var.Class
        , StorableVar
+       , withStorableVar
+       , touchStorableVar
        ) where
 
 import Data.Data
 import Data.Var.Class
 
 import Foreign.ForeignPtr.Safe
+import Foreign.Ptr
 import Foreign.Storable
 
 newtype StorableVar a =
@@ -34,3 +37,9 @@ instance Storable a => Var StorableVar a IO where
     return $ StorableVar ptr
   readVar = flip withForeignPtr peek . unStorableVar
   writeVar (StorableVar ptr) = withForeignPtr ptr . flip poke
+
+withStorableVar :: StorableVar a -> (Ptr a -> IO b) -> IO b
+withStorableVar = withForeignPtr . unStorableVar
+
+touchStorableVar :: StorableVar a -> IO ()
+touchStorableVar = touchForeignPtr . unStorableVar

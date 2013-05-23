@@ -47,67 +47,57 @@ newStorableVar :: Storable a => a -> IO (StorableVar a)
 newStorableVar = newVar
 
 tupleLaws tuple (a, b, c, d, e) = do
-  assertAllUnchangedBut1In tuple $ do
-    a' <- run $ do
-      write1 tuple a
-      read1 tuple
-    assert $ a == a'
-  assertAllUnchangedBut2In tuple $ do
-    b' <- run $ do
-      write2 tuple b
-      read2 tuple
-    assert $ b == b'
-  assertAllUnchangedBut3In tuple $ do
-    c' <- run $ do
-      write3 tuple c
-      read3 tuple
-    assert $ c == c'
-  assertAllUnchangedBut4In tuple $ do
-    d' <- run $ do
-      write4 tuple d
-      read4 tuple
-    assert $ d == d'
-  assertAllUnchangedBut5In tuple $ do
-    e' <- run $ do
-      write5 tuple e
-      read5 tuple
-    assert $ e == e'
+  writeOnly1 tuple a
+  a' <- run $ read1 tuple
+  assert $ a == a'
+  writeOnly2 tuple b
+  b' <- run $ read2 tuple
+  assert $ b == b'
+  writeOnly3 tuple c
+  c' <- run $ read3 tuple
+  assert $ c == c'
+  writeOnly4 tuple d
+  d' <- run $ read4 tuple
+  assert $ d == d'
+  writeOnly5 tuple e
+  e' <- run $ read5 tuple
+  assert $ e == e'
 
-assertAllUnchangedBut1In t m = do
+writeOnly1 t a = do
   xs <- run $ readAllBut1 t
-  _ <- m
+  run $ write1 t a
   xs' <- run $ readAllBut1 t
   assert $ xs == xs'
 
 readAllBut1 t = (,,,) <$> read2 t <*> read3 t <*> read4 t <*> read5 t
 
-assertAllUnchangedBut2In t m = do
+writeOnly2 t a = do
   xs <- run $ readAllBut2 t
-  _ <- m
+  run $ write2 t a
   xs' <- run $ readAllBut2 t
   assert $ xs == xs'
 
 readAllBut2 t = (,,,) <$> read1 t <*> read3 t <*> read4 t <*> read5 t
 
-assertAllUnchangedBut3In t m = do
+writeOnly3 t a = do
   xs <- run $ readAllBut3 t
-  _ <- m
+  run $ write3 t a
   xs' <- run $ readAllBut3 t
   assert $ xs == xs'
 
 readAllBut3 t = (,,,) <$> read1 t <*> read2 t <*> read4 t <*> read5 t
 
-assertAllUnchangedBut4In t m = do
+writeOnly4 t a = do
   xs <- run $ readAllBut4 t
-  _ <- m
+  run $ write4 t a
   xs' <- run $ readAllBut4 t
   assert $ xs == xs'
 
 readAllBut4 t = (,,,) <$> read1 t <*> read2 t <*> read3 t <*> read5 t
 
-assertAllUnchangedBut5In t m = do
+writeOnly5 t a = do
   xs <- run $ readAllBut5 t
-  _ <- m
+  run $ write5 t a
   xs' <- run $ readAllBut5 t
   assert $ xs == xs'
 
@@ -151,7 +141,7 @@ thawSTUTuple5 :: ( ByteArraySlice a
                  ) => (a, b, c, d, e) -> ST s (STUTuple s (a, b, c, d, e))
 thawSTUTuple5 = thawTuple
 
-prop_StorableTuple (a :: Tuple5', b) = monadicIO $ do
+prop_StorableTuple (a :: Tuple5'', b) = monadicIO $ do
   tuple <- run $ thawStorableTuple5 a
   tupleLaws tuple b
 
@@ -163,7 +153,9 @@ thawStorableTuple5 :: ( Storable a
                       ) => (a, b, c, d, e) -> IO (StorableTuple (a, b, c, d, e))
 thawStorableTuple5 = thawTuple
 
-type Tuple5' = (Bool, Char, Int, Bool, Int)
+type Tuple5' = (Bool, (Bool, Int), Int, Bool, Int)
+
+type Tuple5'' = (Bool, Char, Int, Bool, Int)
 
 main :: IO ()
 main = defaultMain

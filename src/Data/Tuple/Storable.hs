@@ -16,6 +16,8 @@ Maintainer  :  andy22286@gmail.com
 module Data.Tuple.Storable
        ( module Data.Tuple.MTuple
        , StorableTuple
+       , withStorableTuple
+       , touchStorableTuple
        ) where
 
 import Data.Data (Data (..), Typeable, mkNoRepType)
@@ -361,3 +363,9 @@ unsafeRead offset t = withForeignPtr (unStorableTuple t) $ \ ptr ->
 unsafeWrite :: Storable a => (Proxy t -> Int) -> StorableTuple t -> a -> IO ()
 unsafeWrite offset t a = withForeignPtr (unStorableTuple t) $ \ ptr ->
   pokeByteOff ptr (offset (proxyFields t)) a
+
+withStorableTuple :: StorableTuple a -> (Ptr Void -> IO b) -> IO b
+withStorableTuple = withForeignPtr . unStorableTuple
+
+touchStorableTuple :: StorableTuple a -> IO ()
+touchStorableTuple = touchForeignPtr . unStorableTuple
