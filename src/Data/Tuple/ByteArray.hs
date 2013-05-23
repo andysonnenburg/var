@@ -176,25 +176,25 @@ offset1 :: t a -> Int
 offset1 _ = 0
 
 offset2 :: ByteArraySlice (Field1 a) => t a -> Int
-offset2 a = offset1 a + byteSize (reproxyField1 a)
+offset2 a = plusByteSize (offset1 a) (reproxyField1 a)
 
 offset3 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field2 a)
            ) => t a -> Int
-offset3 a = offset2 a + byteSize (reproxyField2 a)
+offset3 a = plusByteSize (offset2 a) (reproxyField2 a)
 
 offset4 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field2 a)
            , ByteArraySlice (Field3 a)
            ) => t a -> Int
-offset4 a = offset3 a + byteSize (reproxyField3 a)
+offset4 a = plusByteSize (offset3 a) (reproxyField3 a)
 
 offset5 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field2 a)
            , ByteArraySlice (Field3 a)
            , ByteArraySlice (Field4 a)
            ) => t a -> Int
-offset5 a = offset4 a + byteSize (reproxyField4 a)
+offset5 a = plusByteSize (offset4 a) (reproxyField4 a)
 
 offset6 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field2 a)
@@ -202,7 +202,7 @@ offset6 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field4 a)
            , ByteArraySlice (Field5 a)
            ) => t a -> Int
-offset6 a = offset5 a + byteSize (reproxyField5 a)
+offset6 a = plusByteSize (offset5 a) (reproxyField5 a)
 
 offset7 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field2 a)
@@ -211,7 +211,7 @@ offset7 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field5 a)
            , ByteArraySlice (Field6 a)
            ) => t a -> Int
-offset7 a = offset6 a + byteSize (reproxyField6 a)
+offset7 a = plusByteSize (offset6 a) (reproxyField6 a)
 
 offset8 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field2 a)
@@ -221,7 +221,7 @@ offset8 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field6 a)
            , ByteArraySlice (Field7 a)
            ) => t a -> Int
-offset8 a = offset7 a + byteSize (reproxyField7 a)
+offset8 a = plusByteSize (offset7 a) (reproxyField7 a)
 
 offset9 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field2 a)
@@ -232,7 +232,7 @@ offset9 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field7 a)
            , ByteArraySlice (Field8 a)
            ) => t a -> Int
-offset9 a = offset8 a + byteSize (reproxyField8 a)
+offset9 a = plusByteSize (offset8 a) (reproxyField8 a)
 
 proxyFields :: t a -> Proxy a
 proxyFields = reproxy
