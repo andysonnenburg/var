@@ -111,47 +111,32 @@ thawIOTuple5 :: (a, b, c, d, e) -> IO (IOTuple (a, b, c, d, e))
 thawIOTuple5 = thawTuple
 
 prop_IOUTuple (a :: Tuple5', b) = monadicIO $ do
-  tuple <- run $ thawIOUTuple5 a
+  tuple <- run $ thawIOUTuple a
   tupleLaws tuple b
 
-thawIOUTuple5 :: ( ByteArraySlice a
-                 , ByteArraySlice b
-                 , ByteArraySlice c
-                 , ByteArraySlice d
-                 , ByteArraySlice e
-                 ) => (a, b, c, d, e) -> IO (IOUTuple (a, b, c, d, e))
-thawIOUTuple5 = thawTuple
+thawIOUTuple :: MTuple IOUTuple a IO => a -> IO (IOUTuple a)
+thawIOUTuple = thawTuple
 
 prop_STTuple (a :: Tuple5', b) = monadicST $ do
-  tuple <- run $ thawSTTuple5 a
+  tuple <- run $ thawSTTuple a
   tupleLaws tuple b
 
-thawSTTuple5 :: (a, b, c, d, e) -> ST s (STTuple s (a, b, c, d, e))
-thawSTTuple5 = thawTuple
+thawSTTuple :: MTuple (STTuple s) a (ST s) => a -> ST s (STTuple s a)
+thawSTTuple = thawTuple
 
 prop_STUTuple (a :: Tuple5', b) = monadicST $ do
-  tuple <- run $ thawSTUTuple5 a
+  tuple <- run $ thawSTUTuple a
   tupleLaws tuple b
 
-thawSTUTuple5 :: ( ByteArraySlice a
-                 , ByteArraySlice b
-                 , ByteArraySlice c
-                 , ByteArraySlice d
-                 , ByteArraySlice e
-                 ) => (a, b, c, d, e) -> ST s (STUTuple s (a, b, c, d, e))
-thawSTUTuple5 = thawTuple
+thawSTUTuple :: MTuple (STUTuple s) a (ST s) => a -> ST s (STUTuple s a)
+thawSTUTuple = thawTuple
 
 prop_StorableTuple (a :: Tuple5'', b) = monadicIO $ do
-  tuple <- run $ thawStorableTuple5 a
+  tuple <- run $ thawStorableTuple a
   tupleLaws tuple b
 
-thawStorableTuple5 :: ( Storable a
-                      , Storable b
-                      , Storable c
-                      , Storable d
-                      , Storable e
-                      ) => (a, b, c, d, e) -> IO (StorableTuple (a, b, c, d, e))
-thawStorableTuple5 = thawTuple
+thawStorableTuple :: MTuple StorableTuple a IO => a -> IO (StorableTuple a)
+thawStorableTuple = thawTuple
 
 type Tuple5' = (Bool, (Bool, Int), Int, Bool, Int)
 

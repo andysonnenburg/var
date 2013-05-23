@@ -5,6 +5,7 @@
   , FlexibleContexts
   , FlexibleInstances
   , MultiParamTypeClasses
+  , Rank2Types
   , TypeFamilies
   , TypeOperators
   , UndecidableInstances #-}
@@ -364,8 +365,8 @@ unsafeWrite :: Storable a => (Proxy t -> Int) -> StorableTuple t -> a -> IO ()
 unsafeWrite offset t a = withForeignPtr (unStorableTuple t) $ \ ptr ->
   pokeByteOff ptr (offset (proxyFields t)) a
 
-withStorableTuple :: StorableTuple a -> (Ptr Void -> IO b) -> IO b
-withStorableTuple = withForeignPtr . unStorableTuple
+withStorableTuple :: StorableTuple a -> (forall e . Ptr e -> IO b) -> IO b
+withStorableTuple tuple f = withForeignPtr (unStorableTuple tuple) f
 
 touchStorableTuple :: StorableTuple a -> IO ()
 touchStorableTuple = touchForeignPtr . unStorableTuple
