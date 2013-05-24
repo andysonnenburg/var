@@ -2,7 +2,6 @@
     CPP
   , DefaultSignatures
   , FlexibleContexts
-  , ScopedTypeVariables
   , TypeOperators #-}
 #ifdef LANGUAGE_Unsafe
 {-# LANGUAGE Unsafe #-}
@@ -96,30 +95,48 @@ instance (GByteArraySlice a, GByteArraySlice b) => GByteArraySlice (a :*: b) whe
     gwriteByteOff array (gplusByteSize i (proxy a)) b
   {-# INLINE gwriteByteOff #-}
 
-instance ByteArraySlice ()
-instance (ByteArraySlice a, ByteArraySlice b) => ByteArraySlice (a, b)
+instance ByteArraySlice () where
+  {-# INLINE plusByteSize #-}
+  {-# INLINE readByteOff #-}
+  {-# INLINE writeByteOff #-}
+instance (ByteArraySlice a, ByteArraySlice b) => ByteArraySlice (a, b) where
+  {-# INLINE plusByteSize #-}
+  {-# INLINE readByteOff #-}
+  {-# INLINE writeByteOff #-}
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
-         ) => ByteArraySlice (a, b, c)
+         ) => ByteArraySlice (a, b, c) where
+  {-# INLINE plusByteSize #-}
+  {-# INLINE readByteOff #-}
+  {-# INLINE writeByteOff #-}
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
          , ByteArraySlice d
-         ) => ByteArraySlice (a, b, c, d)
+         ) => ByteArraySlice (a, b, c, d) where
+  {-# INLINE plusByteSize #-}
+  {-# INLINE readByteOff #-}
+  {-# INLINE writeByteOff #-}
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
          , ByteArraySlice d
          , ByteArraySlice e
-         ) => ByteArraySlice (a, b, c, d, e)
+         ) => ByteArraySlice (a, b, c, d, e) where
+  {-# INLINE plusByteSize #-}
+  {-# INLINE readByteOff #-}
+  {-# INLINE writeByteOff #-}
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
          , ByteArraySlice d
          , ByteArraySlice e
          , ByteArraySlice f
-         ) => ByteArraySlice (a, b, c, d, e, f)
+         ) => ByteArraySlice (a, b, c, d, e, f) where
+  {-# INLINE plusByteSize #-}
+  {-# INLINE readByteOff #-}
+  {-# INLINE writeByteOff #-}
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
@@ -128,36 +145,8 @@ instance ( ByteArraySlice a
          , ByteArraySlice f
          , ByteArraySlice g
          ) => ByteArraySlice (a, b, c, d, e, f, g) where
-  readByteOff array i0 = do
-    a <- readByteOff array i0
-    let i1 = plusByteSize i0 (proxy a)
-    b <- readByteOff array i1
-    let i2 = plusByteSize i1 (proxy b)
-    c <- readByteOff array i2
-    let i3 = plusByteSize i2 (proxy c)
-    d <- readByteOff array i3
-    let i4 = plusByteSize i3 (proxy d)
-    e <- readByteOff array i4
-    let i5 = plusByteSize i4 (proxy e)
-    f <- readByteOff array i5
-    let i6 = plusByteSize i5 (proxy f)
-    g <- readByteOff array i6
-    return (a, b, c, d, e, f, g)
+  {-# INLINE plusByteSize #-}
   {-# INLINE readByteOff #-}
-  writeByteOff array i0 (a, b, c, d, e, f, g) = do
-    writeByteOff array i0 a
-    let i1 = plusByteSize i0 (proxy a)
-    writeByteOff array i1 b
-    let i2 = plusByteSize i1 (proxy b)
-    writeByteOff array i2 c
-    let i3 = plusByteSize i2 (proxy c)
-    writeByteOff array i3 d
-    let i4 = plusByteSize i3 (proxy d)
-    writeByteOff array i4 e
-    let i5 = plusByteSize i4 (proxy e)
-    writeByteOff array i5 f
-    let i6 = plusByteSize i5 (proxy f)
-    writeByteOff array i6 g
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Bool where
@@ -280,13 +269,13 @@ plusByteSizeDefault i a = case i `rem` byteSize' of
     byteSize' = byteSize a
 {-# INLINE plusByteSizeDefault #-}
 
-readByteOffDefault :: forall a s .
-                      ByteArrayElem a => MutableByteArray s -> Int -> Prim s a
-readByteOffDefault array i = readByteArray array $! case i `quotRem'` byteSize' of
-  (q, 0) -> q
-  (q, _) -> q + 1
+readByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> Prim s a
+readByteOffDefault array i = m
   where
-    byteSize' = byteSize (Proxy :: Proxy a)
+    m = readByteArray array $! case i `quotRem'` byteSize' of
+      (q, 0) -> q
+      (q, _) -> q + 1
+    byteSize' = byteSize m
 {-# INLINE readByteOffDefault #-}
 
 writeByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> a -> Prim s ()

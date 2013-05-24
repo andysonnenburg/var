@@ -127,8 +127,10 @@ instance (GFields a, GFields b) => GFields (a :*: b) where
   greadArray# array i s = case greadArray# array i s of
     (# s', a #) -> case greadArray# array (i +# gsizeOf# a) s' of
       (# s'', b #) -> (# s'', a :*: b #)
+  {-# INLINE greadArray# #-}
   gwriteArray# array i (a :*: b) s = case gwriteArray# array i a s of
     s' -> gwriteArray# array (i +# gsizeOf# a) b s'
+  {-# INLINE gwriteArray# #-}
 
 gsizeOf# :: GFields a => a p -> Int#
 gsizeOf# a = gsize# (proxy a)

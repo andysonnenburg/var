@@ -1,7 +1,4 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, MagicHash, UnboxedTuples #-}
-#ifdef LANGUAGE_Unsafe
-{-# LANGUAGE Unsafe #-}
-#endif
 {- |
 Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3

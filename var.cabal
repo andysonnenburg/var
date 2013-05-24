@@ -89,7 +89,6 @@ library
     MagicHash,
     MultiParamTypeClasses,
     Rank2Types,
-    ScopedTypeVariables,
     TypeFamilies,
     TypeOperators,
     UnboxedTuples,
