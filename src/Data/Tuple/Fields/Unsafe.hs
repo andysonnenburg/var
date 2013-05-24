@@ -8,10 +8,8 @@
 #endif
 {-# LANGUAGE
     FlexibleContexts
-  , MagicHash
   , TypeOperators
   , TypeFamilies
-  , UnboxedTuples
   , UndecidableInstances #-}
 #ifdef LANGUAGE_Unsafe
 {-# LANGUAGE Unsafe #-}
@@ -23,7 +21,7 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.Fields.Unsafe
        ( Fields (..)
-       , sizeOf#
+       , sizeOf
        , Field1
        , Field2
        , Field3
@@ -35,9 +33,13 @@ module Data.Tuple.Fields.Unsafe
        , Field9
        ) where
 
+import Control.Monad
+import Control.Monad.Prim
+
+import Data.Prim.Array
 import Data.Proxy
 
-import GHC.Exts
+import GHC.Exts (Any)
 import GHC.Generics
 
 import Type.List
@@ -52,34 +54,33 @@ class Fields a where
   type ListRep a
 #endif
 
-  size# :: t a -> Int#
-  readArray# :: MutableArray# s Any -> Int# -> State# s -> (# State# s, a #)
-  writeArray# :: MutableArray# s Any -> Int# -> a -> State# s -> State# s
+  size :: t a -> Int
+  readElemOff :: MutableArray s Any -> Int -> Prim s a
+  writeElemOff :: MutableArray s Any -> Int -> a -> Prim s ()
 
 #ifdef FEATURE_TypeFamilyDefaults
   type ListRep a = GListRep (Rep a)
 #endif
 
-  default size# :: (Generic a, GFields (Rep a)) => t a -> Int#
-  size# a = gsize# (reproxyRep a)
-  {-# INLINE size# #-}
+  default size :: (Generic a, GFields (Rep a)) => t a -> Int
+  size = gsize . reproxyRep
+  {-# INLINE size #-}
 
-  default readArray# :: ( Generic a
-                        , GFields (Rep a)
-                        ) => MutableArray# s Any -> Int# -> State# s -> (# State# s, a #)
-  readArray# array i s = case greadArray# array i s of
-    (# s', a #) -> (# s', to a #)
-  {-# INLINE readArray# #-}
-
-  default writeArray# :: ( Generic a
+  default readElemOff :: ( Generic a
                          , GFields (Rep a)
-                         ) => MutableArray# s Any -> Int# -> a -> State# s -> State# s
-  writeArray# array i a = gwriteArray# array i (from a)
-  {-# INLINE writeArray# #-}
+                         ) => MutableArray s Any -> Int -> Prim s a
+  readElemOff array = liftM to . greadElemOff array
+  {-# INLINE readElemOff #-}
 
-sizeOf# :: Fields a => a -> Int#
-sizeOf# a = size# (proxy a)
-{-# INLINE sizeOf# #-}
+  default writeElemOff :: ( Generic a
+                          , GFields (Rep a)
+                          ) => MutableArray s Any -> Int -> a -> Prim s ()
+  writeElemOff array i = gwriteElemOff array i . from
+  {-# INLINE writeElemOff #-}
+
+sizeOf :: Fields a => a -> Int
+sizeOf a = size (proxy a)
+{-# INLINE sizeOf #-}
 
 class GFields a where
 #ifdef LANGUAGE_DataKinds
@@ -87,54 +88,54 @@ class GFields a where
 #else
   type GListRep a
 #endif
-  gsize# :: t (a p) -> Int#
-  greadArray# :: MutableArray# s Any -> Int# -> State# s -> (# State# s, a p #)
-  gwriteArray# :: MutableArray# s Any -> Int# -> a p -> State# s -> State# s
+  gsize :: t (a p) -> Int
+  greadElemOff :: MutableArray s Any -> Int -> Prim s (a p)
+  gwriteElemOff :: MutableArray s Any -> Int -> a p -> Prim s ()
 
 instance GFields U1 where
   type GListRep U1 = Nil
-  gsize# _ = 0#
-  {-# INLINE gsize# #-}
-  greadArray# _ _ s = (# s, U1 #)
-  {-# INLINE greadArray# #-}
-  gwriteArray# _ _ _ s = s
-  {-# INLINE gwriteArray# #-}
+  gsize _ = 0
+  {-# INLINE gsize #-}
+  greadElemOff _ _ = return U1
+  {-# INLINE greadElemOff #-}
+  gwriteElemOff _ _ _ = return ()
+  {-# INLINE gwriteElemOff #-}
 
 instance GFields (K1 i c) where
   type GListRep (K1 i c) = c :| Nil
-  gsize# _ = 1#
-  {-# INLINE gsize# #-}
-  greadArray# array i s = case GHC.Exts.readArray# array i s of
-    (# s', a #) -> (# s', K1 (unsafeCoerce a) #)
-  {-# INLINE greadArray# #-}
-  gwriteArray# array i = GHC.Exts.writeArray# array i . unsafeCoerce . unK1
-  {-# INLINE gwriteArray# #-}
+  gsize _ = 1
+  {-# INLINE gsize #-}
+  greadElemOff array = liftM (K1 . unsafeCoerce) . readArray array
+  {-# INLINE greadElemOff #-}
+  gwriteElemOff array i = writeArray array i . unsafeCoerce . unK1
+  {-# INLINE gwriteElemOff #-}
 
 instance GFields f => GFields (M1 i c f) where
   type GListRep (M1 i c f) = GListRep f
-  gsize# a = gsize# (reproxyM1 a)
-  {-# INLINE gsize# #-}
-  greadArray# array i s = case greadArray# array i s of
-    (# s', a #) -> (# s', M1 a #)
-  {-# INLINE greadArray# #-}
-  gwriteArray# array i = gwriteArray# array i . unM1
-  {-# INLINE gwriteArray# #-}
+  gsize = gsize . reproxyM1
+  {-# INLINE gsize #-}
+  greadElemOff array = liftM M1 . greadElemOff array
+  {-# INLINE greadElemOff #-}
+  gwriteElemOff array i = gwriteElemOff array i . unM1
+  {-# INLINE gwriteElemOff #-}
 
 instance (GFields a, GFields b) => GFields (a :*: b) where
   type GListRep (a :*: b) = Concat (GListRep a) (GListRep b)
-  gsize# a = gsize# (reproxyFst a) +# gsize# (reproxySnd a)
-  {-# INLINE gsize# #-}
-  greadArray# array i s = case greadArray# array i s of
-    (# s', a #) -> case greadArray# array (i +# gsizeOf# a) s' of
-      (# s'', b #) -> (# s'', a :*: b #)
-  {-# INLINE greadArray# #-}
-  gwriteArray# array i (a :*: b) s = case gwriteArray# array i a s of
-    s' -> gwriteArray# array (i +# gsizeOf# a) b s'
-  {-# INLINE gwriteArray# #-}
+  gsize a = gsize (reproxyFst a) + gsize (reproxySnd a)
+  {-# INLINE gsize #-}
+  greadElemOff array i = do
+    a <- greadElemOff array i
+    b <- greadElemOff array (i + gsizeOf a)
+    return $ a :*: b
+  {-# INLINE greadElemOff #-}
+  gwriteElemOff array i (a :*: b) = do
+    gwriteElemOff array i a
+    gwriteElemOff array (i + gsizeOf a) b
+  {-# INLINE gwriteElemOff #-}
 
-gsizeOf# :: GFields a => a p -> Int#
-gsizeOf# a = gsize# (proxy a)
-{-# INLINE gsizeOf# #-}
+gsizeOf :: GFields a => a p -> Int
+gsizeOf = gsize . proxy
+{-# INLINE gsizeOf #-}
 
 instance Fields ()
 #ifndef FEATURE_TypeFamilyDefaults

@@ -42,6 +42,7 @@ library
     Data.ByteArrayElem.Unsafe
     Data.ByteArraySlice.Unsafe
     Data.IOVar
+    Data.Prim.Array
     Data.Prim.ByteArray
     Data.Proxy
     Data.STVar

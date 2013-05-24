@@ -33,7 +33,7 @@ class ByteArraySlice a where
   writeByteOff :: MutableByteArray s -> Int -> a -> Prim s ()
 
   default plusByteSize :: (Generic a, GByteArraySlice (Rep a)) => Int -> t a -> Int
-  plusByteSize i a = gplusByteSize i (reproxyRep a)
+  plusByteSize i = gplusByteSize i . reproxyRep
   {-# INLINE plusByteSize #-}
 
   default readByteOff :: ( Generic a
