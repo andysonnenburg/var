@@ -42,9 +42,9 @@ instance ( MonadPrim m
          ) => MTuple (ByteArrayTuple s) t m where
   thawTuple a = do
     array <- newByteArray (byteSizeOf a)
-    writeBytes array 0 a
+    writeByteOff array 0 a
     return $ ByteArrayTuple array
-  freezeTuple (ByteArrayTuple array) = readBytes array 0
+  freezeTuple (ByteArrayTuple array) = readByteOff array 0
 
 instance ( MonadPrim m
          , s ~ World m
@@ -241,10 +241,10 @@ unsafeRead :: ( ByteArraySlice a
               , MonadPrim m
               ) => (Proxy t -> Int) -> ByteArrayTuple (World m) t -> m a
 unsafeRead offset t@(ByteArrayTuple array) =
-  readBytes array (offset (proxyFields t))
+  readByteOff array (offset (proxyFields t))
 
 unsafeWrite :: ( ByteArraySlice a
                , MonadPrim m
                ) => (Proxy t -> Int) -> ByteArrayTuple (World m) t -> a -> m ()
 unsafeWrite offset t@(ByteArrayTuple array) a =
-  writeBytes array (offset (proxyFields t)) a
+  writeByteOff array (offset (proxyFields t)) a

@@ -2,6 +2,7 @@
     CPP
   , DefaultSignatures
   , FlexibleContexts
+  , ScopedTypeVariables
   , TypeOperators #-}
 #ifdef LANGUAGE_Unsafe
 {-# LANGUAGE Unsafe #-}
@@ -19,6 +20,7 @@ module Data.ByteArraySlice.Unsafe
 import Control.Monad
 import Control.Monad.Prim.Class
 
+import Data.ByteArrayElem.Unsafe
 import Data.Int
 import Data.Prim.ByteArray
 import Data.Proxy
@@ -26,30 +28,28 @@ import Data.Word
 
 import GHC.Generics
 
-#include "MachDeps.h"
-
 class ByteArraySlice a where
   plusByteSize :: Int -> t a -> Int
-  readBytes :: MonadPrim m => MutableByteArray (World m) -> Int -> m a
-  writeBytes :: MonadPrim m => MutableByteArray (World m) -> Int -> a -> m ()
+  readByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> m a
+  writeByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> a -> m ()
 
   default plusByteSize :: (Generic a, GByteArraySlice (Rep a)) => Int -> t a -> Int
   plusByteSize i a = gplusByteSize i (reproxyRep a)
   {-# INLINE plusByteSize #-}
 
-  default readBytes :: ( Generic a
-                           , GByteArraySlice (Rep a)
-                           , MonadPrim m
-                           ) => MutableByteArray (World m) -> Int -> m a
-  readBytes array = liftM to . greadBytes array
-  {-# INLINE readBytes #-}
+  default readByteOff :: ( Generic a
+                         , GByteArraySlice (Rep a)
+                         , MonadPrim m
+                         ) => MutableByteArray (World m) -> Int -> m a
+  readByteOff array = liftM to . greadByteOff array
+  {-# INLINE readByteOff #-}
 
-  default writeBytes :: ( Generic a
-                            , GByteArraySlice (Rep a)
-                            , MonadPrim m
-                            ) => MutableByteArray (World m) -> Int -> a -> m ()
-  writeBytes array i = gwriteBytes array i . from
-  {-# INLINE writeBytes #-}
+  default writeByteOff :: ( Generic a
+                          , GByteArraySlice (Rep a)
+                          , MonadPrim m
+                          ) => MutableByteArray (World m) -> Int -> a -> m ()
+  writeByteOff array i = gwriteByteOff array i . from
+  {-# INLINE writeByteOff #-}
 
 byteSizeOf :: ByteArraySlice a => a -> Int
 byteSizeOf = plusByteSize 0 . proxy
@@ -57,46 +57,46 @@ byteSizeOf = plusByteSize 0 . proxy
 
 class GByteArraySlice a where
   gplusByteSize :: Int -> t (a p) -> Int
-  greadBytes :: MonadPrim m => MutableByteArray (World m) -> Int -> m (a p)
-  gwriteBytes :: MonadPrim m => MutableByteArray (World m) -> Int -> a p -> m ()
+  greadByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> m (a p)
+  gwriteByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> a p -> m ()
 
 instance GByteArraySlice U1 where
   gplusByteSize = const
   {-# INLINE gplusByteSize #-}
-  greadBytes _ _ = return U1
-  {-# INLINE greadBytes #-}
-  gwriteBytes _ _ _ = return ()
-  {-# INLINE gwriteBytes #-}
+  greadByteOff _ _ = return U1
+  {-# INLINE greadByteOff #-}
+  gwriteByteOff _ _ _ = return ()
+  {-# INLINE gwriteByteOff #-}
 
 instance ByteArraySlice c => GByteArraySlice (K1 i c) where
   gplusByteSize i = plusByteSize i . reproxyK1
   {-# INLINE gplusByteSize #-}
-  greadBytes array = liftM K1 . readBytes array
-  {-# INLINE greadBytes #-}
-  gwriteBytes array i = writeBytes array i . unK1
-  {-# INLINE gwriteBytes #-}
+  greadByteOff array = liftM K1 . readByteOff array
+  {-# INLINE greadByteOff #-}
+  gwriteByteOff array i = writeByteOff array i . unK1
+  {-# INLINE gwriteByteOff #-}
 
 instance GByteArraySlice f => GByteArraySlice (M1 i c f) where
   gplusByteSize i = gplusByteSize i . reproxyM1
   {-# INLINE gplusByteSize #-}
-  greadBytes array = liftM M1 . greadBytes array
-  {-# INLINE greadBytes #-}
-  gwriteBytes array i = gwriteBytes array i . unM1
-  {-# INLINE gwriteBytes #-}
+  greadByteOff array = liftM M1 . greadByteOff array
+  {-# INLINE greadByteOff #-}
+  gwriteByteOff array i = gwriteByteOff array i . unM1
+  {-# INLINE gwriteByteOff #-}
 
 instance (GByteArraySlice a, GByteArraySlice b) => GByteArraySlice (a :*: b) where
   gplusByteSize i a =
     gplusByteSize (gplusByteSize i (reproxyFst a)) (reproxySnd a)
   {-# INLINE gplusByteSize #-}
-  greadBytes array i = do
-    a <- greadBytes array i
-    b <- greadBytes array (gplusByteSize i (proxy a))
+  greadByteOff array i = do
+    a <- greadByteOff array i
+    b <- greadByteOff array (gplusByteSize i (proxy a))
     return $ a :*: b
-  {-# INLINE greadBytes #-}
-  gwriteBytes array i (a :*: b) = do
-    gwriteBytes array i a
-    gwriteBytes array (gplusByteSize i (proxy a)) b
-  {-# INLINE gwriteBytes #-}
+  {-# INLINE greadByteOff #-}
+  gwriteByteOff array i (a :*: b) = do
+    gwriteByteOff array i a
+    gwriteByteOff array (gplusByteSize i (proxy a)) b
+  {-# INLINE gwriteByteOff #-}
 
 instance ByteArraySlice ()
 instance (ByteArraySlice a, ByteArraySlice b) => ByteArraySlice (a, b)
@@ -132,141 +132,145 @@ instance ( ByteArraySlice a
          ) => ByteArraySlice (a, b, c, d, e, f, g)
 
 instance ByteArraySlice Bool where
-  plusByteSize = plusByteSizeDefault 1
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes array = liftM (/= 0) . readInt8Array array
-  {-# INLINE readBytes #-}
-  writeBytes array i e = writeInt8Array array i $! if e then 1 else 0
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Char where
-  plusByteSize = plusByteSizeDefault SIZEOF_HSCHAR
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_HSCHAR readWideCharArray
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_HSCHAR writeWideCharArray
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int where
-  plusByteSize = plusByteSizeDefault SIZEOF_HSINT
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_HSINT readIntArray
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_HSINT writeIntArray
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word where
-  plusByteSize = plusByteSizeDefault SIZEOF_HSWORD
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_HSWORD readWordArray
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_HSWORD writeWordArray
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Float where
-  plusByteSize = plusByteSizeDefault SIZEOF_HSFLOAT
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_HSFLOAT readFloatArray
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_HSFLOAT writeFloatArray
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Double where
-  plusByteSize = plusByteSizeDefault SIZEOF_HSDOUBLE
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_HSDOUBLE readDoubleArray
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_HSDOUBLE writeDoubleArray
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int8 where
-  plusByteSize = plusByteSizeDefault SIZEOF_INT8
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_INT8 readInt8Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_INT8 writeInt8Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int16 where
-  plusByteSize = plusByteSizeDefault SIZEOF_INT16
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_INT16 readInt16Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_INT16 writeInt16Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int32 where
-  plusByteSize = plusByteSizeDefault SIZEOF_INT32
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_INT32 readInt32Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_INT32 writeInt32Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int64 where
-  plusByteSize = plusByteSizeDefault SIZEOF_INT64
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_INT64 readInt64Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_INT64 writeInt64Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word8 where
-  plusByteSize = plusByteSizeDefault SIZEOF_WORD8
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_WORD8 readWord8Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_WORD8 writeWord8Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word16 where
-  plusByteSize = plusByteSizeDefault SIZEOF_WORD16
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_WORD16 readWord16Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_WORD16 writeWord16Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word32 where
-  plusByteSize = plusByteSizeDefault SIZEOF_WORD32
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_WORD32 readWord32Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_WORD32 writeWord32Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word64 where
-  plusByteSize = plusByteSizeDefault SIZEOF_WORD64
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readBytes = readBytesDefault SIZEOF_WORD64 readWord64Array
-  {-# INLINE readBytes #-}
-  writeBytes = writeBytesDefault SIZEOF_WORD64 writeWord64Array
-  {-# INLINE writeBytes #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
 
-plusByteSizeDefault :: Int -> Int -> a -> Int
-plusByteSizeDefault size = \ i _ -> case i `rem` size of
-  0 -> i + size
-  i' -> i + (size - i') + size
+plusByteSizeDefault :: ByteArrayElem a => Int -> t a -> Int
+plusByteSizeDefault i a = case i `rem` byteSize' of
+  0 -> i + byteSize'
+  i' -> i + (byteSize' - i') + byteSize'
+  where
+    byteSize' = byteSize a
 {-# INLINE plusByteSizeDefault #-}
 
-readBytesDefault :: Int ->
-                        (MutableByteArray s -> Int -> a) ->
-                        MutableByteArray s -> Int -> a
-readBytesDefault alignment f = \ array i ->
-  f array $! case i `quotRem'` alignment of
-    (q, 0) -> q
-    (q, _) -> q + 1
-{-# INLINE readBytesDefault #-}
-
-writeBytesDefault :: Int ->
-                         (MutableByteArray s -> Int -> a -> b) ->
-                         MutableByteArray s -> Int -> a -> b
-writeBytesDefault alignment f array i a = i' `seq` f array i' a
+readByteOffDefault :: forall a m .
+                      ( ByteArrayElem a
+                      , MonadPrim m
+                      ) => MutableByteArray (World m) -> Int -> m a
+readByteOffDefault array i = readByteArray array $! case i `quotRem'` byteSize' of
+  (q, 0) -> q
+  (q, _) -> q + 1
   where
-    i' = case i `quotRem'` alignment of
+    byteSize' = byteSize (Proxy :: Proxy a)
+{-# INLINE readByteOffDefault #-}
+
+writeByteOffDefault :: ( ByteArrayElem a
+                       , MonadPrim m
+                       ) => MutableByteArray (World m) -> Int -> a -> m ()
+writeByteOffDefault array i a = i' `seq` writeByteArray array i' a
+  where
+    i' = case i `quotRem'` byteSize (proxy a) of
       (q, 0) -> q
       (q, _) -> q + 1
-{-# INLINE writeBytesDefault #-}
+{-# INLINE writeByteOffDefault #-}
 
 quotRem' :: Integral a => a -> a -> (a, a)
 quotRem' x y = (x `quot` y, x `rem` y)

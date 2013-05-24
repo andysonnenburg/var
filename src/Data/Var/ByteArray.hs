@@ -28,10 +28,10 @@ newtype ByteArrayVar s a = ByteArrayVar (MutableByteArray s) deriving (Eq, Typea
 instance (ByteArraySlice a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
   newVar a = do
     array <- newByteArray (byteSizeOf a)
-    writeBytes array 0 a
+    writeByteOff array 0 a
     return $ ByteArrayVar array
   {-# INLINE newVar #-}
-  readVar (ByteArrayVar array) = readBytes array 0
+  readVar (ByteArrayVar array) = readByteOff array 0
   {-# INLINE readVar #-}
-  writeVar (ByteArrayVar array) = writeBytes array 0
+  writeVar (ByteArrayVar array) = writeByteOff array 0
   {-# INLINE writeVar #-}
