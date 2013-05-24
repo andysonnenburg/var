@@ -107,9 +107,16 @@ test-suite properties
     var
   ghc-options: -Wall -fwarn-tabs -O2
 
-benchmark mutable
+benchmark boxed
   type: exitcode-stdio-1.0
   hs-source-dirs: benchmarks
-  main-is: mutable.hs
+  main-is: boxed.hs
+  build-depends: base, criterion, array, var
+  ghc-options: -Wall -fwarn-tabs -O2
+
+benchmark unboxed
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+  main-is: unboxed.hs
   build-depends: base, criterion, array, var
   ghc-options: -Wall -fwarn-tabs -O2
