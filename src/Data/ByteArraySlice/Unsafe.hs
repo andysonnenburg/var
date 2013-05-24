@@ -18,7 +18,7 @@ module Data.ByteArraySlice.Unsafe
        ) where
 
 import Control.Monad
-import Control.Monad.Prim.Class
+import Control.Monad.Prim
 
 import Data.ByteArrayElem.Unsafe
 import Data.Int
@@ -30,8 +30,8 @@ import GHC.Generics
 
 class ByteArraySlice a where
   plusByteSize :: Int -> t a -> Int
-  readByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> m a
-  writeByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> a -> m ()
+  readByteOff :: MutableByteArray s -> Int -> Prim s a
+  writeByteOff :: MutableByteArray s -> Int -> a -> Prim s ()
 
   default plusByteSize :: (Generic a, GByteArraySlice (Rep a)) => Int -> t a -> Int
   plusByteSize i a = gplusByteSize i (reproxyRep a)
@@ -39,15 +39,13 @@ class ByteArraySlice a where
 
   default readByteOff :: ( Generic a
                          , GByteArraySlice (Rep a)
-                         , MonadPrim m
-                         ) => MutableByteArray (World m) -> Int -> m a
+                         ) => MutableByteArray s -> Int -> Prim s a
   readByteOff array = liftM to . greadByteOff array
   {-# INLINE readByteOff #-}
 
   default writeByteOff :: ( Generic a
                           , GByteArraySlice (Rep a)
-                          , MonadPrim m
-                          ) => MutableByteArray (World m) -> Int -> a -> m ()
+                          ) => MutableByteArray s -> Int -> a -> Prim s ()
   writeByteOff array i = gwriteByteOff array i . from
   {-# INLINE writeByteOff #-}
 
@@ -57,8 +55,8 @@ byteSizeOf = plusByteSize 0 . proxy
 
 class GByteArraySlice a where
   gplusByteSize :: Int -> t (a p) -> Int
-  greadByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> m (a p)
-  gwriteByteOff :: MonadPrim m => MutableByteArray (World m) -> Int -> a p -> m ()
+  greadByteOff :: MutableByteArray s -> Int -> Prim s (a p)
+  gwriteByteOff :: MutableByteArray s -> Int -> a p -> Prim s ()
 
 instance GByteArraySlice U1 where
   gplusByteSize = const
@@ -129,7 +127,38 @@ instance ( ByteArraySlice a
          , ByteArraySlice e
          , ByteArraySlice f
          , ByteArraySlice g
-         ) => ByteArraySlice (a, b, c, d, e, f, g)
+         ) => ByteArraySlice (a, b, c, d, e, f, g) where
+  readByteOff array i0 = do
+    a <- readByteOff array i0
+    let i1 = plusByteSize i0 (proxy a)
+    b <- readByteOff array i1
+    let i2 = plusByteSize i1 (proxy b)
+    c <- readByteOff array i2
+    let i3 = plusByteSize i2 (proxy c)
+    d <- readByteOff array i3
+    let i4 = plusByteSize i3 (proxy d)
+    e <- readByteOff array i4
+    let i5 = plusByteSize i4 (proxy e)
+    f <- readByteOff array i5
+    let i6 = plusByteSize i5 (proxy f)
+    g <- readByteOff array i6
+    return (a, b, c, d, e, f, g)
+  {-# INLINE readByteOff #-}
+  writeByteOff array i0 (a, b, c, d, e, f, g) = do
+    writeByteOff array i0 a
+    let i1 = plusByteSize i0 (proxy a)
+    writeByteOff array i1 b
+    let i2 = plusByteSize i1 (proxy b)
+    writeByteOff array i2 c
+    let i3 = plusByteSize i2 (proxy c)
+    writeByteOff array i3 d
+    let i4 = plusByteSize i3 (proxy d)
+    writeByteOff array i4 e
+    let i5 = plusByteSize i4 (proxy e)
+    writeByteOff array i5 f
+    let i6 = plusByteSize i5 (proxy f)
+    writeByteOff array i6 g
+  {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Bool where
   plusByteSize = plusByteSizeDefault
@@ -251,10 +280,8 @@ plusByteSizeDefault i a = case i `rem` byteSize' of
     byteSize' = byteSize a
 {-# INLINE plusByteSizeDefault #-}
 
-readByteOffDefault :: forall a m .
-                      ( ByteArrayElem a
-                      , MonadPrim m
-                      ) => MutableByteArray (World m) -> Int -> m a
+readByteOffDefault :: forall a s .
+                      ByteArrayElem a => MutableByteArray s -> Int -> Prim s a
 readByteOffDefault array i = readByteArray array $! case i `quotRem'` byteSize' of
   (q, 0) -> q
   (q, _) -> q + 1
@@ -262,9 +289,7 @@ readByteOffDefault array i = readByteArray array $! case i `quotRem'` byteSize' 
     byteSize' = byteSize (Proxy :: Proxy a)
 {-# INLINE readByteOffDefault #-}
 
-writeByteOffDefault :: ( ByteArrayElem a
-                       , MonadPrim m
-                       ) => MutableByteArray (World m) -> Int -> a -> m ()
+writeByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> a -> Prim s ()
 writeByteOffDefault array i a = i' `seq` writeByteArray array i' a
   where
     i' = case i `quotRem'` byteSize (proxy a) of

@@ -37,6 +37,7 @@ library
     Data.Var.ST
     Data.Var.Storable
   other-modules:
+    Control.Monad.Prim
     Control.Monad.Prim.Class
     Data.ByteArrayElem.Unsafe
     Data.ByteArraySlice.Unsafe

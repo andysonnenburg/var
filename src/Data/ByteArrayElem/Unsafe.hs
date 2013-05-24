@@ -12,7 +12,7 @@ module Data.ByteArrayElem.Unsafe
        ) where
 
 import Control.Monad
-import Control.Monad.Prim.Class
+import Control.Monad.Prim
 
 import Data.Int
 import Data.Prim.ByteArray
@@ -22,8 +22,8 @@ import Data.Word
 
 class ByteArrayElem a where
   byteSize :: t a -> Int
-  readByteArray :: MonadPrim m => MutableByteArray (World m) -> Int -> m a
-  writeByteArray :: MonadPrim m => MutableByteArray (World m) -> Int -> a -> m ()
+  readByteArray :: MutableByteArray s -> Int -> Prim s a
+  writeByteArray :: MutableByteArray s -> Int -> a -> Prim s ()
 
 instance ByteArrayElem Bool where
   byteSize _ = 1

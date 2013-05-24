@@ -16,7 +16,7 @@ module Data.Var.ByteArray
        ( ByteArrayVar
        ) where
 
-import Control.Monad.Prim.Class
+import Control.Monad.Prim
 
 import Data.ByteArraySlice.Unsafe
 import Data.Prim.ByteArray
@@ -26,12 +26,12 @@ import Data.Typeable (Typeable)
 newtype ByteArrayVar s a = ByteArrayVar (MutableByteArray s) deriving (Eq, Typeable)
 
 instance (ByteArraySlice a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
-  newVar a = do
+  newVar a = runPrim $ do
     array <- newByteArray (byteSizeOf a)
     writeByteOff array 0 a
     return $ ByteArrayVar array
   {-# INLINE newVar #-}
-  readVar (ByteArrayVar array) = readByteOff array 0
+  readVar (ByteArrayVar array) = runPrim $ readByteOff array 0
   {-# INLINE readVar #-}
-  writeVar (ByteArrayVar array) = writeByteOff array 0
+  writeVar (ByteArrayVar array) = runPrim . writeByteOff array 0
   {-# INLINE writeVar #-}

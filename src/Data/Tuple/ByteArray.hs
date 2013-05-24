@@ -23,7 +23,7 @@ module Data.Tuple.ByteArray
        ( ByteArrayTuple
        ) where
 
-import Control.Monad.Prim.Class
+import Control.Monad.Prim
 
 import Data.ByteArraySlice.Unsafe
 import Data.Prim.ByteArray
@@ -40,11 +40,11 @@ instance ( MonadPrim m
          , Fields t
          , ByteArraySlice t
          ) => MTuple (ByteArrayTuple s) t m where
-  thawTuple a = do
+  thawTuple a = runPrim $ do
     array <- newByteArray (byteSizeOf a)
     writeByteOff array 0 a
     return $ ByteArrayTuple array
-  freezeTuple (ByteArrayTuple array) = readByteOff array 0
+  freezeTuple (ByteArrayTuple array) = runPrim $ readByteOff array 0
 
 instance ( MonadPrim m
          , s ~ World m
@@ -241,10 +241,10 @@ unsafeRead :: ( ByteArraySlice a
               , MonadPrim m
               ) => (Proxy t -> Int) -> ByteArrayTuple (World m) t -> m a
 unsafeRead offset t@(ByteArrayTuple array) =
-  readByteOff array (offset (proxyFields t))
+  runPrim $ readByteOff array (offset (proxyFields t))
 
 unsafeWrite :: ( ByteArraySlice a
                , MonadPrim m
                ) => (Proxy t -> Int) -> ByteArrayTuple (World m) t -> a -> m ()
 unsafeWrite offset t@(ByteArrayTuple array) a =
-  writeByteOff array (offset (proxyFields t)) a
+  runPrim $ writeByteOff array (offset (proxyFields t)) a
