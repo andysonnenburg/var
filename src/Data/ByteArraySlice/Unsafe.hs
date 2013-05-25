@@ -12,7 +12,9 @@ License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
 module Data.ByteArraySlice.Unsafe
-       ( ByteArraySlice (..)
+       ( module Control.Monad.Prim
+       , MutableByteArray
+       , ByteArraySlice (..)
        , byteSizeOf
        ) where
 
@@ -26,6 +28,9 @@ import Data.Proxy
 import Data.Word
 
 import GHC.Generics
+
+import Foreign.Ptr
+import Foreign.StablePtr
 
 class ByteArraySlice a where
   plusByteSize :: Int -> t a -> Int
@@ -254,6 +259,30 @@ instance ByteArraySlice Word32 where
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word64 where
+  plusByteSize = plusByteSizeDefault
+  {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
+
+instance ByteArraySlice (StablePtr a) where
+  plusByteSize = plusByteSizeDefault
+  {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
+
+instance ByteArraySlice (FunPtr a) where
+  plusByteSize = plusByteSizeDefault
+  {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
+  {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
+  {-# INLINE writeByteOff #-}
+
+instance ByteArraySlice (Ptr a) where
   plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
   readByteOff = readByteOffDefault

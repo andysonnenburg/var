@@ -26,6 +26,7 @@ library
   hs-source-dirs: src
   exposed-modules:
     Data.ByteArraySlice
+    Data.ByteArraySlice.Unsafe
     Data.Tuple.Fields
     Data.Tuple.IO
     Data.Tuple.MTuple
@@ -40,7 +41,6 @@ library
     Control.Monad.Prim
     Control.Monad.Prim.Class
     Data.ByteArrayElem.Unsafe
-    Data.ByteArraySlice.Unsafe
     Data.IOVar
     Data.Prim.Array
     Data.Prim.ByteArray
@@ -120,4 +120,11 @@ benchmark unboxed
   hs-source-dirs: benchmarks
   main-is: unboxed.hs
   build-depends: base, criterion, array, var
+  ghc-options: -Wall -fwarn-tabs -O2
+
+benchmark user
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+  main-is: user.hs
+  build-depends: base, criterion, array, deepseq, var
   ghc-options: -Wall -fwarn-tabs -O2
