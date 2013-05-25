@@ -20,16 +20,16 @@ import GHC.ST (ST (ST))
 
 class Monad m => MonadPrim m where
   type World m
-  liftPrim :: (State# (World m) -> (# State# (World m), a #)) -> m a
+  prim :: (State# (World m) -> (# State# (World m), a #)) -> m a
 
 instance MonadPrim (ST s) where
   type World (ST s) = s
-  liftPrim = ST
+  prim = ST
 
 instance MonadPrim (Lazy.ST s) where
   type World (Lazy.ST s) = s
-  liftPrim = strictToLazyST . liftPrim
+  prim = strictToLazyST . prim
 
 instance MonadPrim IO where
   type World IO = RealWorld
-  liftPrim = IO
+  prim = IO

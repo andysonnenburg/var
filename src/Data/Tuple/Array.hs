@@ -33,9 +33,9 @@ newtype ArrayTuple s a = ArrayTuple (MutableArray s Any) deriving (Eq, Typeable)
 instance (MonadPrim m, s ~ World m, Fields t) => MTuple (ArrayTuple s) t m where
   thawTuple a = runPrim $ do
     array <- newArray (sizeOf a) undefined
-    writeElemOff array 0 a
+    writeFields array 0 a
     return $ ArrayTuple array
-  freezeTuple (ArrayTuple array) = runPrim $ readElemOff array 0
+  freezeTuple (ArrayTuple array) = runPrim $ readFields array 0
 
 instance ( MonadPrim m
          , s ~ World m

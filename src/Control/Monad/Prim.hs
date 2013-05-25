@@ -17,7 +17,7 @@ import GHC.Exts
 newtype Prim s a = Prim { unPrim :: State# s -> (# State# s, a #) }
 
 runPrim :: MonadPrim m => Prim (World m) a -> m a
-runPrim = liftPrim . unPrim
+runPrim = prim . unPrim
 {-# INLINE runPrim #-}
 
 instance Monad (Prim s) where
@@ -32,5 +32,5 @@ instance Monad (Prim s) where
 
 instance MonadPrim (Prim s) where
   type World (Prim s) = s
-  liftPrim = Prim
-  {-# INLINE liftPrim #-}
+  prim = Prim
+  {-# INLINE prim #-}

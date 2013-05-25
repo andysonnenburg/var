@@ -20,7 +20,15 @@ License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.Fields.Unsafe
-       ( Fields (..)
+       (
+#ifdef LANGUAGE_DataKinds
+         List (..)
+#else
+         Nil, (:|)
+#endif
+       , MutableArray
+       , module Control.Monad.Prim
+       , Fields (..)
        , sizeOf
        , Field1
        , Field2
@@ -55,8 +63,8 @@ class Fields a where
 #endif
 
   size :: t a -> Int
-  readElemOff :: MutableArray s Any -> Int -> Prim s a
-  writeElemOff :: MutableArray s Any -> Int -> a -> Prim s ()
+  readFields :: MutableArray s Any -> Int -> Prim s a
+  writeFields :: MutableArray s Any -> Int -> a -> Prim s ()
 
 #ifdef FEATURE_TypeFamilyDefaults
   type ListRep a = GListRep (Rep a)
@@ -66,17 +74,17 @@ class Fields a where
   size = gsize . reproxyRep
   {-# INLINE size #-}
 
-  default readElemOff :: ( Generic a
+  default readFields :: ( Generic a
                          , GFields (Rep a)
                          ) => MutableArray s Any -> Int -> Prim s a
-  readElemOff array = liftM to . greadElemOff array
-  {-# INLINE readElemOff #-}
+  readFields array = liftM to . greadFields array
+  {-# INLINE readFields #-}
 
-  default writeElemOff :: ( Generic a
+  default writeFields :: ( Generic a
                           , GFields (Rep a)
                           ) => MutableArray s Any -> Int -> a -> Prim s ()
-  writeElemOff array i = gwriteElemOff array i . from
-  {-# INLINE writeElemOff #-}
+  writeFields array i = gwriteFields array i . from
+  {-# INLINE writeFields #-}
 
 sizeOf :: Fields a => a -> Int
 sizeOf a = size (proxy a)
@@ -89,49 +97,49 @@ class GFields a where
   type GListRep a
 #endif
   gsize :: t (a p) -> Int
-  greadElemOff :: MutableArray s Any -> Int -> Prim s (a p)
-  gwriteElemOff :: MutableArray s Any -> Int -> a p -> Prim s ()
+  greadFields :: MutableArray s Any -> Int -> Prim s (a p)
+  gwriteFields :: MutableArray s Any -> Int -> a p -> Prim s ()
 
 instance GFields U1 where
   type GListRep U1 = Nil
   gsize _ = 0
   {-# INLINE gsize #-}
-  greadElemOff _ _ = return U1
-  {-# INLINE greadElemOff #-}
-  gwriteElemOff _ _ _ = return ()
-  {-# INLINE gwriteElemOff #-}
+  greadFields _ _ = return U1
+  {-# INLINE greadFields #-}
+  gwriteFields _ _ _ = return ()
+  {-# INLINE gwriteFields #-}
 
 instance GFields (K1 i c) where
   type GListRep (K1 i c) = c :| Nil
   gsize _ = 1
   {-# INLINE gsize #-}
-  greadElemOff array = liftM (K1 . unsafeCoerce) . readArray array
-  {-# INLINE greadElemOff #-}
-  gwriteElemOff array i = writeArray array i . unsafeCoerce . unK1
-  {-# INLINE gwriteElemOff #-}
+  greadFields array = liftM (K1 . unsafeCoerce) . readArray array
+  {-# INLINE greadFields #-}
+  gwriteFields array i = writeArray array i . unsafeCoerce . unK1
+  {-# INLINE gwriteFields #-}
 
 instance GFields f => GFields (M1 i c f) where
   type GListRep (M1 i c f) = GListRep f
   gsize = gsize . reproxyM1
   {-# INLINE gsize #-}
-  greadElemOff array = liftM M1 . greadElemOff array
-  {-# INLINE greadElemOff #-}
-  gwriteElemOff array i = gwriteElemOff array i . unM1
-  {-# INLINE gwriteElemOff #-}
+  greadFields array = liftM M1 . greadFields array
+  {-# INLINE greadFields #-}
+  gwriteFields array i = gwriteFields array i . unM1
+  {-# INLINE gwriteFields #-}
 
 instance (GFields a, GFields b) => GFields (a :*: b) where
   type GListRep (a :*: b) = Concat (GListRep a) (GListRep b)
   gsize a = gsize (reproxyFst a) + gsize (reproxySnd a)
   {-# INLINE gsize #-}
-  greadElemOff array i = do
-    a <- greadElemOff array i
-    b <- greadElemOff array (i + gsizeOf a)
+  greadFields array i = do
+    a <- greadFields array i
+    b <- greadFields array (i + gsizeOf a)
     return $ a :*: b
-  {-# INLINE greadElemOff #-}
-  gwriteElemOff array i (a :*: b) = do
-    gwriteElemOff array i a
-    gwriteElemOff array (i + gsizeOf a) b
-  {-# INLINE gwriteElemOff #-}
+  {-# INLINE greadFields #-}
+  gwriteFields array i (a :*: b) = do
+    gwriteFields array i a
+    gwriteFields array (i + gsizeOf a) b
+  {-# INLINE gwriteFields #-}
 
 gsizeOf :: GFields a => a p -> Int
 gsizeOf = gsize . proxy

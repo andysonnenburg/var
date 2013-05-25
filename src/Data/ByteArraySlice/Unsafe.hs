@@ -12,8 +12,8 @@ License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
 module Data.ByteArraySlice.Unsafe
-       ( module Control.Monad.Prim
-       , MutableByteArray
+       ( MutableByteArray
+       , module Control.Monad.Prim
        , ByteArraySlice (..)
        , byteSizeOf
        ) where

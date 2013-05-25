@@ -24,16 +24,16 @@ instance Eq (MutableArray s a) where
   {-# INLINE (==) #-}
 
 newArray :: Int -> a -> Prim s (MutableArray s a)
-newArray (I# i) a = liftPrim $ \ s -> case newArray# i a s of
+newArray (I# i) a = prim $ \ s -> case newArray# i a s of
   (# s', array #) -> (# s', MutableArray array #)
 {-# INLINE newArray #-}
 
 readArray :: MutableArray s a -> Int -> Prim s a
-readArray (MutableArray array) (I# i) = liftPrim $ readArray# array i
+readArray (MutableArray array) (I# i) = prim $ readArray# array i
 {-# INLINE readArray #-}
 
 writeArray :: MutableArray s a -> Int -> a -> Prim s ()
 writeArray (MutableArray array) (I# i) a =
-  liftPrim $ \ s -> case writeArray# array i a s of
+  prim $ \ s -> case writeArray# array i a s of
     s' -> (# s', () #)
 {-# INLINE writeArray #-}

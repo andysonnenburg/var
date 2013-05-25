@@ -28,6 +28,7 @@ library
     Data.ByteArraySlice
     Data.ByteArraySlice.Unsafe
     Data.Tuple.Fields
+    Data.Tuple.Fields.Unsafe
     Data.Tuple.IO
     Data.Tuple.MTuple
     Data.Tuple.ST
@@ -49,7 +50,6 @@ library
     Data.Tuple.Array
     Data.Tuple.ByteArray
     Data.Tuple.Fields.Extra
-    Data.Tuple.Fields.Unsafe
     Data.Var.ByteArray
     Type.List
     Type.Nat
