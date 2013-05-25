@@ -21,6 +21,9 @@ module Data.Prim.ByteArray
        , readWord16Array
        , readWord32Array
        , readWord64Array
+       , readStablePtrArray
+       , readFunPtrArray
+       , readPtrArray
        , writeCharArray
        , writeWideCharArray
        , writeIntArray
@@ -35,6 +38,9 @@ module Data.Prim.ByteArray
        , writeWord16Array
        , writeWord32Array
        , writeWord64Array
+       , writeStablePtrArray
+       , writeFunPtrArray
+       , writePtrArray
        ) where
 
 import Control.Monad.Prim
@@ -43,6 +49,7 @@ import Data.Typeable (Typeable)
 
 import GHC.Exts
 import GHC.Int
+import GHC.Stable
 import GHC.Word
 
 data MutableByteArray s = MutableByteArray (MutableByteArray# s) deriving Typeable
@@ -140,6 +147,24 @@ readWord64Array (MutableByteArray array) (I# i) =
     (# s', e #) -> (# s', W64# e #)
 {-# INLINE readWord64Array #-}
 
+readStablePtrArray :: MutableByteArray s -> Int -> Prim s (StablePtr a)
+readStablePtrArray (MutableByteArray array) (I# i) =
+  liftPrim $ \ s -> case readStablePtrArray# array i s of
+    (# s', e #) -> (# s', StablePtr e #)
+{-# INLINE readStablePtrArray #-}
+
+readFunPtrArray :: MutableByteArray s -> Int -> Prim s (FunPtr a)
+readFunPtrArray (MutableByteArray array) (I# i) =
+  liftPrim $ \ s -> case readAddrArray# array i s of
+    (# s', e #) -> (# s', FunPtr e #)
+{-# INLINE readFunPtrArray #-}
+
+readPtrArray :: MutableByteArray s -> Int -> Prim s (Ptr a)
+readPtrArray (MutableByteArray array) (I# i) =
+  liftPrim $ \ s -> case readAddrArray# array i s of
+    (# s', e #) -> (# s', Ptr e #)
+{-# INLINE readPtrArray #-}
+
 writeCharArray :: MutableByteArray s -> Int -> Char -> Prim s ()
 writeCharArray (MutableByteArray array) (I# i) (C# e) =
   liftPrim $ \ s -> case writeCharArray# array i e s of
@@ -223,3 +248,21 @@ writeWord64Array (MutableByteArray array) (I# i) (W64# e) =
   liftPrim $ \ s -> case writeWord64Array# array i e s of
     s' -> (# s', () #)
 {-# INLINE writeWord64Array #-}
+
+writeStablePtrArray :: MutableByteArray s -> Int -> StablePtr a -> Prim s ()
+writeStablePtrArray (MutableByteArray array) (I# i) (StablePtr e) =
+  liftPrim $ \ s -> case writeStablePtrArray# array i e s of
+    s' -> (# s', () #)
+{-# INLINE writeStablePtrArray #-}
+
+writeFunPtrArray :: MutableByteArray s -> Int -> FunPtr a -> Prim s ()
+writeFunPtrArray (MutableByteArray array) (I# i) (FunPtr e) =
+  liftPrim $ \ s -> case writeAddrArray# array i e s of
+    s' -> (# s', () #)
+{-# INLINE writeFunPtrArray #-}
+
+writePtrArray :: MutableByteArray s -> Int -> Ptr a -> Prim s ()
+writePtrArray (MutableByteArray array) (I# i) (Ptr e) =
+  liftPrim $ \ s -> case writeAddrArray# array i e s of
+    s' -> (# s', () #)
+{-# INLINE writePtrArray #-}

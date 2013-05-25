@@ -18,121 +18,148 @@ import Data.Int
 import Data.Prim.ByteArray
 import Data.Word
 
+import Foreign.Ptr
+import Foreign.StablePtr
+
 #include "MachDeps.h"
 
 class ByteArrayElem a where
   byteSize :: t a -> Int
-  readByteArray :: MutableByteArray s -> Int -> Prim s a
-  writeByteArray :: MutableByteArray s -> Int -> a -> Prim s ()
+  readElemOff :: MutableByteArray s -> Int -> Prim s a
+  writeElemOff :: MutableByteArray s -> Int -> a -> Prim s ()
 
 instance ByteArrayElem Bool where
   byteSize _ = 1
   {-# INLINE byteSize #-}
-  readByteArray array = liftM (/= 0) . readInt8Array array
-  {-# INLINE readByteArray #-}
-  writeByteArray array i e = writeInt8Array array i $! if e then 1 else 0
-  {-# INLINE writeByteArray #-}
+  readElemOff array = liftM (/= 0) . readInt8Array array
+  {-# INLINE readElemOff #-}
+  writeElemOff array i e = writeInt8Array array i $! if e then 1 else 0
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Char where
   byteSize _ = SIZEOF_HSCHAR
   {-# INLINE byteSize #-}
-  readByteArray = readWideCharArray
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeWideCharArray
-  {-# INLINE writeByteArray #-}
+  readElemOff = readWideCharArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeWideCharArray
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Int where
   byteSize _ = SIZEOF_HSINT
   {-# INLINE byteSize #-}
-  readByteArray = readIntArray
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeIntArray
-  {-# INLINE writeByteArray #-}
+  readElemOff = readIntArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeIntArray
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Word where
   byteSize _ = SIZEOF_HSWORD
   {-# INLINE byteSize #-}
-  readByteArray = readWordArray
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeWordArray
-  {-# INLINE writeByteArray #-}
+  readElemOff = readWordArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeWordArray
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Float where
   byteSize _ = SIZEOF_HSFLOAT
   {-# INLINE byteSize #-}
-  readByteArray = readFloatArray
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeFloatArray
-  {-# INLINE writeByteArray #-}
+  readElemOff = readFloatArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeFloatArray
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Double where
   byteSize _ = SIZEOF_HSDOUBLE
   {-# INLINE byteSize #-}
-  readByteArray = readDoubleArray
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeDoubleArray
-  {-# INLINE writeByteArray #-}
+  readElemOff = readDoubleArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeDoubleArray
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Int8 where
   byteSize _ = SIZEOF_INT8
   {-# INLINE byteSize #-}
-  readByteArray = readInt8Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeInt8Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readInt8Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeInt8Array
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Int16 where
   byteSize _ = SIZEOF_INT16
   {-# INLINE byteSize #-}
-  readByteArray = readInt16Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeInt16Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readInt16Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeInt16Array
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Int32 where
   byteSize _ = SIZEOF_INT32
   {-# INLINE byteSize #-}
-  readByteArray = readInt32Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeInt32Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readInt32Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeInt32Array
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Int64 where
   byteSize _ = SIZEOF_INT64
   {-# INLINE byteSize #-}
-  readByteArray = readInt64Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeInt64Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readInt64Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeInt64Array
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Word8 where
   byteSize _ = SIZEOF_WORD8
   {-# INLINE byteSize #-}
-  readByteArray = readWord8Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeWord8Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readWord8Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeWord8Array
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Word16 where
   byteSize _ = SIZEOF_WORD16
   {-# INLINE byteSize #-}
-  readByteArray = readWord16Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeWord16Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readWord16Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeWord16Array
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Word32 where
   byteSize _ = SIZEOF_WORD32
   {-# INLINE byteSize #-}
-  readByteArray = readWord32Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeWord32Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readWord32Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeWord32Array
+  {-# INLINE writeElemOff #-}
 
 instance ByteArrayElem Word64 where
   byteSize _ = SIZEOF_WORD64
   {-# INLINE byteSize #-}
-  readByteArray = readWord64Array
-  {-# INLINE readByteArray #-}
-  writeByteArray = writeWord64Array
-  {-# INLINE writeByteArray #-}
+  readElemOff = readWord64Array
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeWord64Array
+  {-# INLINE writeElemOff #-}
+
+instance ByteArrayElem (StablePtr a) where
+  byteSize _ = SIZEOF_HSWORD
+  {-# INLINE byteSize #-}
+  readElemOff = readStablePtrArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeStablePtrArray
+  {-# INLINE writeElemOff #-}
+
+instance ByteArrayElem (FunPtr a) where
+  byteSize _ = SIZEOF_HSWORD
+  {-# INLINE byteSize #-}
+  readElemOff = readFunPtrArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writeFunPtrArray
+  {-# INLINE writeElemOff #-}
+
+instance ByteArrayElem (Ptr a) where
+  byteSize _ = SIZEOF_HSWORD
+  {-# INLINE byteSize #-}
+  readElemOff = readPtrArray
+  {-# INLINE readElemOff #-}
+  writeElemOff = writePtrArray
+  {-# INLINE writeElemOff #-}
