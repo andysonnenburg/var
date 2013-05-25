@@ -16,7 +16,6 @@ module Data.Tuple.Array
        ( ArrayTuple
        ) where
 
-import Control.Monad
 import Control.Monad.Prim
 
 import Data.Prim.Array
@@ -110,7 +109,7 @@ instance ( MonadPrim m
   write9 = unsafeWrite 8
 
 unsafeRead :: MonadPrim m => Int -> ArrayTuple (World m) t -> m a
-unsafeRead i (ArrayTuple array) = runPrim $ liftM unsafeCoerce $ readArray array i
+unsafeRead i (ArrayTuple array) = runPrim $ fmap unsafeCoerce $ readArray array i
 
 unsafeWrite :: MonadPrim m => Int -> ArrayTuple (World m) t -> a -> m ()
 unsafeWrite i (ArrayTuple array) = runPrim . writeArray array i . unsafeCoerce

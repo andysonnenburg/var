@@ -41,9 +41,9 @@ module Data.Tuple.Fields.Unsafe
        , Field9
        ) where
 
-import Control.Monad
 import Control.Monad.Prim
 
+import Data.Functor.Identity
 import Data.Prim.Array
 import Data.Proxy
 
@@ -77,7 +77,7 @@ class Fields a where
   default readFields :: ( Generic a
                          , GFields (Rep a)
                          ) => MutableArray s Any -> Int -> Prim s a
-  readFields array = liftM to . greadFields array
+  readFields array = fmap to . greadFields array
   {-# INLINE readFields #-}
 
   default writeFields :: ( Generic a
@@ -113,7 +113,7 @@ instance GFields (K1 i c) where
   type GListRep (K1 i c) = c :| Nil
   gsize _ = 1
   {-# INLINE gsize #-}
-  greadFields array = liftM (K1 . unsafeCoerce) . readArray array
+  greadFields array = fmap (K1 . unsafeCoerce) . readArray array
   {-# INLINE greadFields #-}
   gwriteFields array i = writeArray array i . unsafeCoerce . unK1
   {-# INLINE gwriteFields #-}
@@ -122,7 +122,7 @@ instance GFields f => GFields (M1 i c f) where
   type GListRep (M1 i c f) = GListRep f
   gsize = gsize . reproxyM1
   {-# INLINE gsize #-}
-  greadFields array = liftM M1 . greadFields array
+  greadFields array = fmap M1 . greadFields array
   {-# INLINE greadFields #-}
   gwriteFields array i = gwriteFields array i . unM1
   {-# INLINE gwriteFields #-}
@@ -173,6 +173,14 @@ instance Fields (a, b, c, d, e, f, g)
 #ifndef FEATURE_TypeFamilyDefaults
   where type ListRep (a, b, c, d, e, f, g) = GListRep (Rep (a, b, c, d, e, f, g))
 #endif
+
+instance Fields (Identity a) where
+  size _ = 1
+  {-# INLINE size #-}
+  readFields array = fmap unsafeCoerce . readArray array
+  {-# INLINE readFields #-}
+  writeFields array i = writeArray array i . unsafeCoerce
+  {-# INLINE writeFields #-}
 
 type ToList a = ListRep a
 

@@ -11,7 +11,6 @@ module Data.ByteArrayElem.Unsafe
        ( ByteArrayElem (..)
        ) where
 
-import Control.Monad
 import Control.Monad.Prim
 
 import Data.Int
@@ -31,7 +30,7 @@ class ByteArrayElem a where
 instance ByteArrayElem Bool where
   byteSize _ = 1
   {-# INLINE byteSize #-}
-  readElemOff array = liftM (/= 0) . readInt8Array array
+  readElemOff array = fmap (/= 0) . readInt8Array array
   {-# INLINE readElemOff #-}
   writeElemOff array i e = writeInt8Array array i $! if e then 1 else 0
   {-# INLINE writeElemOff #-}

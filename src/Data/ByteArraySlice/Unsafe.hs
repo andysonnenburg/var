@@ -18,7 +18,6 @@ module Data.ByteArraySlice.Unsafe
        , byteSizeOf
        ) where
 
-import Control.Monad
 import Control.Monad.Prim
 
 import Data.ByteArrayElem.Unsafe
@@ -44,7 +43,7 @@ class ByteArraySlice a where
   default readByteOff :: ( Generic a
                          , GByteArraySlice (Rep a)
                          ) => MutableByteArray s -> Int -> Prim s a
-  readByteOff array = liftM to . greadByteOff array
+  readByteOff array = fmap to . greadByteOff array
   {-# INLINE readByteOff #-}
 
   default writeByteOff :: ( Generic a
@@ -73,7 +72,7 @@ instance GByteArraySlice U1 where
 instance ByteArraySlice c => GByteArraySlice (K1 i c) where
   gplusByteSize i = plusByteSize i . reproxyK1
   {-# INLINE gplusByteSize #-}
-  greadByteOff array = liftM K1 . readByteOff array
+  greadByteOff array = fmap K1 . readByteOff array
   {-# INLINE greadByteOff #-}
   gwriteByteOff array i = writeByteOff array i . unK1
   {-# INLINE gwriteByteOff #-}
@@ -81,7 +80,7 @@ instance ByteArraySlice c => GByteArraySlice (K1 i c) where
 instance GByteArraySlice f => GByteArraySlice (M1 i c f) where
   gplusByteSize i = gplusByteSize i . reproxyM1
   {-# INLINE gplusByteSize #-}
-  greadByteOff array = liftM M1 . greadByteOff array
+  greadByteOff array = fmap M1 . greadByteOff array
   {-# INLINE greadByteOff #-}
   gwriteByteOff array i = gwriteByteOff array i . unM1
   {-# INLINE gwriteByteOff #-}
