@@ -29,7 +29,7 @@ import Data.ByteArraySlice.Unsafe
 import Data.Prim.ByteArray
 import Data.Proxy
 import Data.Tuple.Fields
-import Data.Tuple.Fields.Extra
+import Data.Tuple.Fields.Proxy
 import Data.Tuple.MTuple
 import Data.Typeable (Typeable)
 

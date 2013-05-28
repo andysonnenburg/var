@@ -1,9 +1,15 @@
-{-# LANGUAGE FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE
+    FlexibleContexts
+  , GADTs
+  , Rank2Types
+  , ScopedTypeVariables
+  , StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Main (main) where
 
 import Control.Applicative
 import Control.Monad.ST
+import qualified Control.Monad.ST.Lazy as Lazy
 
 import Data.ByteArraySlice
 import Data.Tuple.IO
@@ -17,6 +23,8 @@ import Foreign.Storable
 
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
+import Test.QuickCheck
+import Test.QuickCheck.Gen
 import Test.QuickCheck.Monadic
 
 varLaws var a = do
@@ -25,19 +33,26 @@ varLaws var a = do
     readVar var
   assert $ a == a'
 
-prop_IOUVar (a :: Int, b) = monadicIO $ do
+prop_IOUVar (SomeByteArraySlice2 a a') = monadicIO $ do
   var <- run $ newIOUVar a
-  varLaws var b
+  varLaws var a'
 
 newIOUVar :: ByteArraySlice a => a -> IO (IOUVar a)
 newIOUVar = newVar
 
-prop_STUVar (a :: Int, b) = monadicST $ do
+prop_STUVar (SomeByteArraySlice2 a a') = monadicST $ do
   var <- run $ newSTUVar a
-  varLaws var b
+  varLaws var a'
+
+prop_LazySTUVar (SomeByteArraySlice2 a a') = monadicLazyST $ do
+  var <- run $ newLazySTUVar a
+  varLaws var a'
 
 newSTUVar :: ByteArraySlice a => a -> ST s (STUVar s a)
 newSTUVar = newVar
+
+newLazySTUVar :: ByteArraySlice a => a -> Lazy.ST s (STUVar s a)
+newLazySTUVar = newVar
 
 prop_StorableVar (a :: Int, b) = monadicIO $ do
   var <- run $ newStorableVar a
@@ -46,7 +61,7 @@ prop_StorableVar (a :: Int, b) = monadicIO $ do
 newStorableVar :: Storable a => a -> IO (StorableVar a)
 newStorableVar = newVar
 
-tupleLaws tuple (a, b, c, d, e) = do
+tupleWriteRead tuple (a, b, c, d, e) = do
   writeOnly1 tuple a
   a' <- run $ read1 tuple
   assert $ a == a'
@@ -62,6 +77,11 @@ tupleLaws tuple (a, b, c, d, e) = do
   writeOnly5 tuple e
   e' <- run $ read5 tuple
   assert $ e == e'
+
+tupleThawFreeze thaw xs = do
+  tuple <- run $ thaw xs
+  xs' <- run $ freezeTuple tuple
+  assert $ xs == xs'
 
 writeOnly1 t a = do
   xs <- run $ readAllBut1 t
@@ -103,53 +123,214 @@ writeOnly5 t a = do
 
 readAllBut5 t = (,,,) <$> read1 t <*> read2 t <*> read3 t <*> read4 t
 
-prop_IOTuple (a :: Tuple5', b) = monadicIO $ do
-  tuple <- run $ thawIOTuple5 a
-  tupleLaws tuple b
+prop_IOTuple (a :: IntegerTuple, b) = monadicIO $ do
+  tuple <- run $ thawIOTuple a
+  tupleWriteRead tuple b
+  tupleThawFreeze thawIOTuple a
 
-thawIOTuple5 :: (a, b, c, d, e) -> IO (IOTuple (a, b, c, d, e))
-thawIOTuple5 = thawTuple
+thawIOTuple :: MTuple IOTuple a IO => a -> IO (IOTuple a)
+thawIOTuple = thawTuple
 
-prop_IOUTuple (a :: Tuple5', b) = monadicIO $ do
-  tuple <- run $ thawIOUTuple a
-  tupleLaws tuple b
+prop_IOUTuple (SomeByteArraySlice2 a a',
+               SomeByteArraySlice2 b b',
+               SomeByteArraySlice2 c c',
+               SomeByteArraySlice2 d d',
+               SomeByteArraySlice2 e e') = monadicIO $ do
+  let xs = (a, b, c, d, e)
+  tuple <- run $ thawIOUTuple xs
+  tupleWriteRead tuple (a', b', c', d', e')
+  tupleThawFreeze thawIOUTuple xs
 
 thawIOUTuple :: MTuple IOUTuple a IO => a -> IO (IOUTuple a)
 thawIOUTuple = thawTuple
 
-prop_STTuple (a :: Tuple5', b) = monadicST $ do
+prop_STTuple (a :: IntegerTuple, b) = monadicST $ do
   tuple <- run $ thawSTTuple a
-  tupleLaws tuple b
+  tupleWriteRead tuple b
+  tupleThawFreeze thawSTTuple a
+
+prop_LazySTTuple (a :: IntegerTuple, b) = monadicLazyST $ do
+  tuple <- run $ thawLazySTTuple a
+  tupleWriteRead tuple b
+  tupleThawFreeze thawLazySTTuple a
 
 thawSTTuple :: MTuple (STTuple s) a (ST s) => a -> ST s (STTuple s a)
 thawSTTuple = thawTuple
 
-prop_STUTuple (a :: Tuple5', b) = monadicST $ do
-  tuple <- run $ thawSTUTuple a
-  tupleLaws tuple b
+thawLazySTTuple :: MTuple (STTuple s) a (Lazy.ST s) => a -> Lazy.ST s (STTuple s a)
+thawLazySTTuple = thawTuple
+
+prop_STUTuple (SomeByteArraySlice2 a a',
+               SomeByteArraySlice2 b b',
+               SomeByteArraySlice2 c c',
+               SomeByteArraySlice2 d d',
+               SomeByteArraySlice2 e e')  = monadicST $ do
+  let xs = (a, b, c, d, e)
+  tuple <- run $ thawSTUTuple xs
+  tupleWriteRead tuple (a', b', c', d', e')
+  tupleThawFreeze thawSTUTuple xs
+
+prop_LazySTUTuple (SomeByteArraySlice2 a a',
+                   SomeByteArraySlice2 b b',
+                   SomeByteArraySlice2 c c',
+                   SomeByteArraySlice2 d d',
+                   SomeByteArraySlice2 e e')  = monadicLazyST $ do
+  let xs = (a, b, c, d, e)
+  tuple <- run $ thawLazySTUTuple xs
+  tupleWriteRead tuple (a', b', c', d', e')
+  tupleThawFreeze thawLazySTUTuple xs
 
 thawSTUTuple :: MTuple (STUTuple s) a (ST s) => a -> ST s (STUTuple s a)
 thawSTUTuple = thawTuple
 
-prop_StorableTuple (a :: Tuple5'', b) = monadicIO $ do
-  tuple <- run $ thawStorableTuple a
-  tupleLaws tuple b
+thawLazySTUTuple :: MTuple (STUTuple s) a (Lazy.ST s) => a -> Lazy.ST s (STUTuple s a)
+thawLazySTUTuple = thawTuple
+
+prop_StorableTuple (SomeStorable2 a a',
+                    SomeStorable2 b b',
+                    SomeStorable2 c c',
+                    SomeStorable2 d d',
+                    SomeStorable2 e e') = monadicIO $ do
+  let xs = (a, b, c, d, e)
+  tuple <- run $ thawStorableTuple xs
+  tupleWriteRead tuple (a', b', c', d', e')
+  tupleThawFreeze thawStorableTuple xs
 
 thawStorableTuple :: MTuple StorableTuple a IO => a -> IO (StorableTuple a)
 thawStorableTuple = thawTuple
-
-type Tuple5' = (Bool, (Bool, Int), Int, Bool, Int)
-
-type Tuple5'' = (Bool, Char, Int, Bool, Int)
 
 main :: IO ()
 main = defaultMain
        [ testProperty "IOUVar" prop_IOUVar
        , testProperty "STUVar" prop_STUVar
+       , testProperty "LazySTUVar" prop_LazySTUVar
        , testProperty "StorableVar" prop_StorableVar
        , testProperty "IOTuple" prop_IOTuple
        , testProperty "IOUTuple" prop_IOUTuple
        , testProperty "STTuple" prop_STTuple
+       , testProperty "LazySTTuple" prop_LazySTTuple
        , testProperty "STUTuple" prop_STUTuple
+       , testProperty "LazySTUTuple" prop_LazySTUTuple
        , testProperty "StorableTuple" prop_StorableTuple
        ]
+
+data SomeByteArraySlice2 where
+  SomeByteArraySlice2 :: ( Show a
+                         , Eq a
+                         , Arbitrary a
+                         , ByteArraySlice a
+                         ) => a -> a -> SomeByteArraySlice2
+
+instance Show SomeByteArraySlice2 where
+  showsPrec p (SomeByteArraySlice2 a a') = showsPrec p (a, a')
+  show (SomeByteArraySlice2 a a') = show (a, a')
+
+instance Arbitrary SomeByteArraySlice2 where
+  arbitrary = do
+    (ByteArraySliceDict (Proxy :: Proxy a)) <- arbitrary
+    (a, a') :: (a, a) <- arbitrary
+    return $ SomeByteArraySlice2 a a'
+  shrink (SomeByteArraySlice2 a a') =
+    map (uncurry SomeByteArraySlice2) $ shrink (a, a')
+
+data ByteArraySliceDict where
+  ByteArraySliceDict :: ( Show a
+                        , Eq a
+                        , Arbitrary a
+                        , ByteArraySlice a
+                        ) => Proxy a -> ByteArraySliceDict
+
+deriving instance Show ByteArraySliceDict
+
+instance Arbitrary ByteArraySliceDict where
+  arbitrary = do
+    n <- size
+    oneof $ if n <= 0 then leaf else subtree
+    where
+      leaf =
+        [ pure $ ByteArraySliceDict (Proxy :: Proxy Bool)
+        , pure $ ByteArraySliceDict (Proxy :: Proxy Char)
+        , pure $ ByteArraySliceDict (Proxy :: Proxy Double)
+        , pure $ ByteArraySliceDict (Proxy :: Proxy Float)
+        , pure $ ByteArraySliceDict (Proxy :: Proxy Int)
+        ]
+      subtree =
+        leaf ++
+        [ do
+             n <- size
+             let n' = n `div` 2
+             ByteArraySliceDict (Proxy :: Proxy a) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy b) <- resize n' arbitrary
+             return $ ByteArraySliceDict (Proxy :: Proxy (a, b))
+        , do
+             n <- size
+             let n' = n `div` 3
+             ByteArraySliceDict (Proxy :: Proxy a) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy b) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy c) <- resize n' arbitrary
+             return $ ByteArraySliceDict (Proxy :: Proxy (a, b, c))
+        , do
+             n <- size
+             let n' = n `div` 4
+             ByteArraySliceDict (Proxy :: Proxy a) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy b) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy c) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy d) <- resize n' arbitrary
+             return $ ByteArraySliceDict (Proxy :: Proxy (a, b, c, d))
+        , do
+             n <- size
+             let n' = n `div` 5
+             ByteArraySliceDict (Proxy :: Proxy a) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy b) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy c) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy d) <- resize n' arbitrary
+             ByteArraySliceDict (Proxy :: Proxy e) <- resize n' arbitrary
+             return $ ByteArraySliceDict (Proxy :: Proxy (a, b, c, d, e))
+        ]
+
+data SomeStorable2 where
+  SomeStorable2 :: (Show a, Eq a, Arbitrary a, Storable a) => a -> a -> SomeStorable2
+
+instance Show SomeStorable2 where
+  showsPrec p (SomeStorable2 a a') = showsPrec p (a, a')
+  show (SomeStorable2 a a') = show (a, a')
+
+instance Arbitrary SomeStorable2 where
+  arbitrary = do
+    StorableDict (Proxy :: Proxy a) <- arbitrary
+    (a, a') :: (a, a) <- arbitrary
+    return $ SomeStorable2 a a'
+  shrink (SomeStorable2 a a') =
+    map (uncurry SomeStorable2) $ shrink (a, a')
+
+data StorableDict where
+  StorableDict :: ( Show a
+                  , Eq a
+                  , Arbitrary a
+                  , Storable a
+                  ) => Proxy a -> StorableDict
+
+deriving instance Show StorableDict
+
+instance Arbitrary StorableDict where
+  arbitrary =
+    elements
+    [ StorableDict (Proxy :: Proxy Bool)
+    , StorableDict (Proxy :: Proxy Char)
+    , StorableDict (Proxy :: Proxy Double)
+    , StorableDict (Proxy :: Proxy Float)
+    , StorableDict (Proxy :: Proxy Int)
+    ]
+
+type IntegerTuple = (Integer, Integer, Integer, Integer, Integer)
+
+monadicLazyST :: (forall s. PropertyM (Lazy.ST s) a) -> Property
+monadicLazyST m = property (runLazySTGen (monadic' m))
+
+runLazySTGen :: (forall s. Gen (Lazy.ST s a)) -> Gen a
+runLazySTGen g = MkGen $ \r n -> Lazy.runST (unGen g r n)
+
+size :: Gen Int
+size = MkGen $ \ _ n -> n
+
+data Proxy a = Proxy deriving Show

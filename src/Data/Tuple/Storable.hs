@@ -24,7 +24,7 @@ module Data.Tuple.Storable
 import Data.Data (Data (..), Typeable, mkNoRepType)
 import Data.Proxy
 import Data.Tuple.Fields
-import Data.Tuple.Fields.Extra
+import Data.Tuple.Fields.Proxy
 import Data.Tuple.MTuple
 
 import Foreign.ForeignPtr.Safe

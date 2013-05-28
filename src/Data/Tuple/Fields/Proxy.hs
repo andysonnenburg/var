@@ -3,7 +3,7 @@ Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
-module Data.Tuple.Fields.Extra
+module Data.Tuple.Fields.Proxy
        ( reproxyField1
        , reproxyField2
        , reproxyField3

@@ -49,7 +49,7 @@ library
     Data.STVar
     Data.Tuple.Array
     Data.Tuple.ByteArray
-    Data.Tuple.Fields.Extra
+    Data.Tuple.Fields.Proxy
     Data.Var.ByteArray
     Type.List
     Type.Nat
