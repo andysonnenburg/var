@@ -1,13 +1,8 @@
-{-# LANGUAGE CPP #-}
-#ifdef LANGUAGE_DataKinds
-{-# LANGUAGE DataKinds #-}
-#endif
-{-# LANGUAGE DefaultSignatures, DeriveDataTypeable #-}
-#ifndef LANGUAGE_DataKinds
-{-# LANGUAGE EmptyDataDecls #-}
-#endif
 {-# LANGUAGE
-    FlexibleInstances
+    CPP
+  , DefaultSignatures
+  , DeriveDataTypeable
+  , FlexibleInstances
   , FlexibleContexts
   , MultiParamTypeClasses #-}
 #ifdef LANGUAGE_Trustworthy

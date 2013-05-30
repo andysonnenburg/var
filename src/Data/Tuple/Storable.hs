@@ -21,6 +21,8 @@ module Data.Tuple.Storable
        , touchStorableTuple
        ) where
 
+import Control.Applicative
+
 import Data.Data (Data (..), Typeable, mkNoRepType)
 import Data.Proxy
 import Data.Tuple.Fields
@@ -206,60 +208,67 @@ instance ( Fields t
   write9 = unsafeWrite offset9
 
 class Fields a => StorableFields a where
-  size :: t a -> Int
-  peekFields :: Ptr Void -> IO a
-  pokeFields :: Ptr Void -> a -> IO ()
+  plusSize :: Int -> t a -> Int
+  peekFieldsOff :: Ptr Void -> Int -> IO a
+  pokeFieldsOff :: Ptr Void -> Int -> a -> IO ()
 
-  default size :: (Generic a, GStorableFields (Rep a)) => t a -> Int
-  size = gsize . reproxyRep
+  default plusSize :: (Generic a, GStorableFields (Rep a)) => Int -> t a -> Int
+  plusSize i = gplusSize i . reproxyRep
 
-  default peekFields :: (Generic a, GStorableFields (Rep a)) => Ptr Void -> IO a
-  peekFields = fmap to . gpeekFields
+  default peekFieldsOff :: ( Generic a
+                           , GStorableFields (Rep a)
+                           ) => Ptr Void -> Int -> IO a
+  peekFieldsOff ptr = fmap to . gpeekFieldsOff ptr
 
-  default pokeFields :: (Generic a, GStorableFields (Rep a)) => Ptr Void -> a -> IO ()
-  pokeFields ptr = gpokeFields ptr . from
+  default pokeFieldsOff :: ( Generic a
+                           , GStorableFields (Rep a)
+                           ) => Ptr Void -> Int -> a -> IO ()
+  pokeFieldsOff ptr i = gpokeFieldsOff ptr i . from
 
 thawTuple' :: StorableFields a => a -> IO (StorableTuple a)
 thawTuple' a = do
   ptr <- mallocForeignPtrBytes (sizeOf' a)
-  withForeignPtr ptr $ flip pokeFields a
+  withForeignPtr ptr $ \ ptr' -> pokeFieldsOff ptr' 0 a
   return $ StorableTuple ptr
 
 freezeTuple' :: StorableFields a => StorableTuple a -> IO a
-freezeTuple' = flip withForeignPtr peekFields . unStorableTuple
+freezeTuple' (StorableTuple ptr) = withForeignPtr ptr $ flip peekFieldsOff 0
 
 sizeOf' :: StorableFields a => a -> Int
-sizeOf' = size . proxy
+sizeOf' = plusSize 0 . proxy
 
 class GStorableFields a where
-  gsize :: t (a p) -> Int
-  gpeekFields :: Ptr Void -> IO (a p)
-  gpokeFields :: Ptr Void -> a p -> IO ()
+  gplusSize :: Int -> t (a p) -> Int
+  gpeekFieldsOff :: Ptr Void -> Int -> IO (a p)
+  gpokeFieldsOff :: Ptr Void -> Int -> a p -> IO ()
 
 instance GStorableFields U1 where
-  gsize _ = 0
-  gpeekFields _ = return U1
-  gpokeFields _ _ = return ()
+  gplusSize = const
+  gpeekFieldsOff _ _ = return U1
+  gpokeFieldsOff _ _ _ = return ()
 
 instance Storable c => GStorableFields (K1 i c) where
-  gsize = sizeOf . unproxy . reproxyK1
-  gpeekFields = fmap K1 . peek . castPtr
-  gpokeFields ptr = poke (castPtr ptr) . unK1
+  gplusSize i = plusSize' i . reproxyK1
+  gpeekFieldsOff ptr i = m
+    where
+      m = K1 <$> peekByteOff (castPtr ptr) (align i $ alignment' $ reproxyK1 m)
+  gpokeFieldsOff ptr i (K1 a) =
+    pokeByteOff (castPtr ptr) (align i $ alignment a) a
 
 instance GStorableFields f => GStorableFields (M1 i c f) where
-  gsize = gsize . reproxyM1
-  gpeekFields = fmap M1 . gpeekFields
-  gpokeFields ptr = gpokeFields ptr . unM1
+  gplusSize i = gplusSize i . reproxyM1
+  gpeekFieldsOff ptr = fmap M1 . gpeekFieldsOff ptr
+  gpokeFieldsOff ptr i = gpokeFieldsOff ptr i . unM1
 
 instance (GStorableFields a, GStorableFields b) => GStorableFields (a :*: b) where
-  gsize a = gsize (reproxyFst a) + gsize (reproxySnd a)
-  gpeekFields ptr = do
-    a <- gpeekFields ptr
-    b <- gpeekFields (plusPtr ptr (gsize (proxy a)))
+  gplusSize i a = gplusSize (gplusSize i (reproxyFst a)) (reproxySnd a)
+  gpeekFieldsOff ptr i = do
+    a <- gpeekFieldsOff ptr i
+    b <- gpeekFieldsOff ptr (gplusSize i (proxy a))
     return $ a :*: b
-  gpokeFields ptr (a :*: b) = do
-    gpokeFields ptr a
-    gpokeFields (plusPtr ptr (gsize (proxy a))) b
+  gpokeFieldsOff ptr i (a :*: b) = do
+    gpokeFieldsOff ptr i a
+    gpokeFieldsOff ptr (gplusSize i (proxy a)) b
 
 instance StorableFields ()
 instance (Storable a, Storable b) => StorableFields (a, b)
@@ -295,23 +304,23 @@ offset1 :: t a -> Int
 offset1 _ = 0
 
 offset2 :: Storable (Field1 a) => t a -> Int
-offset2 a = offset1 a + sizeOf (unproxy (reproxyField1 a))
+offset2 a = plusSize' (offset1 a) (reproxyField1 a)
 
 offset3 :: (Storable (Field1 a), Storable (Field2 a)) => t a -> Int
-offset3 a = offset2 a + sizeOf (unproxy (reproxyField2 a))
+offset3 a = plusSize' (offset2 a) (reproxyField2 a)
 
 offset4 :: ( Storable (Field1 a)
            , Storable (Field2 a)
            , Storable (Field3 a)
            ) => t a -> Int
-offset4 a = offset3 a + sizeOf (unproxy (reproxyField3 a))
+offset4 a = plusSize' (offset3 a) (reproxyField3 a)
 
 offset5 :: ( Storable (Field1 a)
            , Storable (Field2 a)
            , Storable (Field3 a)
            , Storable (Field4 a)
            ) => t a -> Int
-offset5 a = offset4 a + sizeOf (unproxy (reproxyField4 a))
+offset5 a = plusSize' (offset4 a) (reproxyField4 a)
 
 offset6 :: ( Storable (Field1 a)
            , Storable (Field2 a)
@@ -319,7 +328,7 @@ offset6 :: ( Storable (Field1 a)
            , Storable (Field4 a)
            , Storable (Field5 a)
            ) => t a -> Int
-offset6 a = offset5 a + sizeOf (unproxy (reproxyField5 a))
+offset6 a = plusSize' (offset5 a) (reproxyField5 a)
 
 offset7 :: ( Storable (Field1 a)
            , Storable (Field2 a)
@@ -328,7 +337,7 @@ offset7 :: ( Storable (Field1 a)
            , Storable (Field5 a)
            , Storable (Field6 a)
            ) => t a -> Int
-offset7 a = offset6 a + sizeOf (unproxy (reproxyField6 a))
+offset7 a = plusSize' (offset6 a) (reproxyField6 a)
 
 offset8 :: ( Storable (Field1 a)
            , Storable (Field2 a)
@@ -338,7 +347,7 @@ offset8 :: ( Storable (Field1 a)
            , Storable (Field6 a)
            , Storable (Field7 a)
            ) => t a -> Int
-offset8 a = offset7 a + sizeOf (unproxy (reproxyField7 a))
+offset8 a = plusSize' (offset7 a) (reproxyField7 a)
 
 offset9 :: ( Storable (Field1 a)
            , Storable (Field2 a)
@@ -349,7 +358,21 @@ offset9 :: ( Storable (Field1 a)
            , Storable (Field7 a)
            , Storable (Field8 a)
            ) => t a -> Int
-offset9 a = offset8 a + sizeOf (unproxy (reproxyField8 a))
+offset9 a = plusSize' (offset8 a) (reproxyField8 a)
+
+plusSize' :: Storable a => Int -> t a -> Int
+plusSize' i t = align i (alignment' t) + size t
+
+alignment' :: Storable a => t a -> Int
+alignment' = alignment . unproxy
+
+align :: Int -> Int -> Int
+align a i = case a `rem` i of
+  0 -> a
+  n -> a + (i - n)
+
+size :: Storable a => t a -> Int
+size = sizeOf . unproxy
 
 unproxy :: t a -> a
 unproxy = undefined
