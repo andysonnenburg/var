@@ -381,12 +381,14 @@ proxyFields :: t a -> Proxy a
 proxyFields = reproxy
 
 unsafeRead :: Storable a => (Proxy t -> Int) -> StorableTuple t -> IO a
-unsafeRead offset t = withForeignPtr (unStorableTuple t) $ \ ptr ->
-  peekByteOff ptr (offset (proxyFields t))
+unsafeRead offset t = m
+  where
+    m = withForeignPtr (unStorableTuple t) $ \ ptr ->
+      peekByteOff ptr (align (offset (proxyFields t)) (alignment' m))
 
 unsafeWrite :: Storable a => (Proxy t -> Int) -> StorableTuple t -> a -> IO ()
 unsafeWrite offset t a = withForeignPtr (unStorableTuple t) $ \ ptr ->
-  pokeByteOff ptr (offset (proxyFields t)) a
+  pokeByteOff ptr (align (offset (proxyFields t)) (alignment a)) a
 
 withStorableTuple :: StorableTuple a -> (forall e . Ptr e -> IO b) -> IO b
 withStorableTuple tuple f = withForeignPtr (unStorableTuple tuple) f

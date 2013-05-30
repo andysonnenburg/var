@@ -300,14 +300,14 @@ plusByteSizeDefault i a = case i `rem` byteSize' of
 readByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> Prim s a
 readByteOffDefault array i = m
   where
-    m = readElemOff array $! case i `quotRem'` byteSize' of
+    m = readElemOff array $ case i `quotRem'` byteSize' of
       (q, 0) -> q
       (q, _) -> q + 1
     byteSize' = byteSize m
 {-# INLINE readByteOffDefault #-}
 
 writeByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> a -> Prim s ()
-writeByteOffDefault array i a = i' `seq` writeElemOff array i' a
+writeByteOffDefault array i a = writeElemOff array i' a
   where
     i' = case i `quotRem'` byteSize (proxy a) of
       (q, 0) -> q

@@ -175,6 +175,7 @@ instance Fields (a, b, c, d, e, f, g)
 #endif
 
 instance Fields (Identity a) where
+  type ListRep (Identity a) = a :| Nil
   size _ = 1
   {-# INLINE size #-}
   readFields array = fmap unsafeCoerce . readArray array
