@@ -21,6 +21,7 @@ source-repository head
 
 flag safe-ST
 flag strict-modifyRef
+flag ghc-conc-sync
 
 library
   hs-source-dirs: src
@@ -37,6 +38,7 @@ library
     Data.Var.Class
     Data.Var.IO
     Data.Var.ST
+    Data.Var.STM
     Data.Var.Storable
   other-modules:
     Control.Monad.Prim
@@ -50,6 +52,7 @@ library
     Data.Tuple.Array
     Data.Tuple.ByteArray
     Data.Tuple.Fields.Proxy
+    Data.TVar
     Data.Var.ByteArray
     Type.List
     Type.Nat
@@ -57,6 +60,9 @@ library
   if flag(safe-ST)
     build-depends: base >= 4.4
     cpp-options: -DMODULE_Control_Monad_ST_Safe
+  if flag(ghc-conc-sync)
+    build-depends: base >= 4.3
+    cpp-options: -DMODULE_GHC_Conc_Sync
   if flag(strict-modifyRef)
     build-depends: base >= 4.6
     cpp-options: -DFUNCTION_Data_IORef_modifyRef_ -DFUNCTION_Data_STRef_modifyRef_

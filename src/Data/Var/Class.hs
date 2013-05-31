@@ -28,6 +28,7 @@ import Data.IOVar
 import Data.STRef
 import qualified Data.STRef.Lazy as Lazy
 import Data.STVar
+import Data.TVar
 
 class Monad m => Var var a m where
   newVar :: a -> m (var a)
@@ -74,3 +75,8 @@ instance Var (STVar s) a (Lazy.ST s) where
   readVar = Lazy.readSTRef
   writeVar = Lazy.writeSTRef
   modifyVar = Lazy.modifySTRef
+
+instance Var TVar a STM where
+  newVar = newTVar
+  readVar = readTVar
+  writeVar = writeTVar
