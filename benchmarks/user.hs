@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE CPP, DeriveGeneric, TypeFamilies, TypeOperators #-}
 module Main (main) where
 
 import Control.Applicative
@@ -9,7 +9,7 @@ import Criterion
 import Criterion.Main (defaultMain)
 
 import Data.ByteArraySlice.Unsafe
-import Data.Tuple.Fields
+import Data.Tuple.Fields.Unsafe
 import Data.Tuple.ST
 import Data.Word
 
@@ -31,6 +31,9 @@ data Uninlined
 
 instance ByteArraySlice Uninlined
 instance Fields Uninlined
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep Uninlined = Char :| Int :| Word :| Float :| Double :| Nil
+#endif
 instance NFData Uninlined
 
 uninlined :: Int -> [Uninlined]
@@ -64,7 +67,15 @@ instance ByteArraySlice Inlined where
   {-# INLINE plusByteSize #-}
   {-# INLINE readByteOff #-}
   {-# INLINE writeByteOff #-}
+#ifndef FEATURE_InlineDefaultMethods
+  plusByteSize = plusByteSizeDefault
+  readByteOff = readByteOffDefault
+  writeByteOff = writeByteOffDefault
+#endif
 instance Fields Inlined
+#ifndef FEATURE_TypeFamilyDefaults
+  where type ListRep Inlined = Char :| Int :| Word :| Float :| Double :| Nil
+#endif
 instance NFData Inlined
 
 inlined :: Int -> [Inlined]

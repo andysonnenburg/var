@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS_GHC -fcontext-stack=22 #-}
 module Main (main) where
 
 import Control.Applicative

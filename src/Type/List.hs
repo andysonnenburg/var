@@ -30,6 +30,7 @@ data List a = Nil | a :| List a
 data Nil
 data a :| b
 #endif
+infixr 5 :|
 
 #ifdef LANGUAGE_DataKinds
 #ifdef FEATURE_KindVariables

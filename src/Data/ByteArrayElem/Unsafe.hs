@@ -9,12 +9,16 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.ByteArrayElem.Unsafe
        ( ByteArrayElem (..)
+       , plusByteSizeDefault
+       , readByteOffDefault
+       , writeByteOffDefault
        ) where
 
 import Control.Monad.Prim
 
 import Data.Int
 import Data.Prim.ByteArray
+import Data.Proxy
 import Data.Word
 
 import Foreign.Ptr
@@ -162,3 +166,32 @@ instance ByteArrayElem (Ptr a) where
   {-# INLINE readElemOff #-}
   writeElemOff = writePtrArray
   {-# INLINE writeElemOff #-}
+
+plusByteSizeDefault :: ByteArrayElem a => Int -> t a -> Int
+plusByteSizeDefault i a = case i `rem` byteSize' of
+  0 -> i + byteSize'
+  i' -> i + (byteSize' - i') + byteSize'
+  where
+    byteSize' = byteSize a
+{-# INLINE plusByteSizeDefault #-}
+
+readByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> Prim s a
+readByteOffDefault array i = m
+  where
+    m = readElemOff array $ case i `quotRem'` byteSize' of
+      (q, 0) -> q
+      (q, _) -> q + 1
+    byteSize' = byteSize m
+{-# INLINE readByteOffDefault #-}
+
+writeByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> a -> Prim s ()
+writeByteOffDefault array i a = writeElemOff array i' a
+  where
+    i' = case i `quotRem'` byteSize (proxy a) of
+      (q, 0) -> q
+      (q, _) -> q + 1
+{-# INLINE writeByteOffDefault #-}
+
+quotRem' :: Integral a => a -> a -> (a, a)
+quotRem' x y = (x `quot` y, x `rem` y)
+{-# INLINE quotRem' #-}

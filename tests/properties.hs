@@ -2,8 +2,7 @@
     FlexibleContexts
   , GADTs
   , Rank2Types
-  , ScopedTypeVariables
-  , StandaloneDeriving #-}
+  , ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Main (main) where
 
@@ -31,29 +30,30 @@ import Test.QuickCheck.Gen
 import Test.QuickCheck.Monadic
 
 main :: IO ()
-main = defaultMain
-       [ testProperty "IOVar" prop_IOVar
-       , testProperty "IOUVar" prop_IOUVar
-       , testProperty "STVar" prop_STVar
-       , testProperty "LazySTVar" prop_LazySTVar
-       , testProperty "STUVar" prop_STUVar
-       , testProperty "LazySTUVar" prop_LazySTUVar
-       , testProperty "StorableVar" prop_StorableVar
-       , testProperty "IOTuple" prop_IOTuple
-       , testProperty "IOUTuple" prop_IOUTuple
-       , testProperty "STTuple" prop_STTuple
-       , testProperty "LazySTTuple" prop_LazySTTuple
-       , testProperty "STUTuple" prop_STUTuple
-       , testProperty "LazySTUTuple" prop_LazySTUTuple
-       , testProperty "StorableTuple" prop_StorableTuple
-       , testProperty "StorableTuple'" (prop_StorableTuple' ::
-                                           Int16 -> Int16 ->
-                                           Float -> Float ->
-                                           Double -> Double ->
-                                           Float -> Float ->
-                                           Word16 -> Word16 ->
-                                           Property)
-       ]
+main =
+  defaultMain
+  [ testProperty "IOVar" prop_IOVar
+  , testProperty "IOUVar" prop_IOUVar
+  , testProperty "STVar" prop_STVar
+  , testProperty "LazySTVar" prop_LazySTVar
+  , testProperty "STUVar" prop_STUVar
+  , testProperty "LazySTUVar" prop_LazySTUVar
+  , testProperty "StorableVar" prop_StorableVar
+  , testProperty "IOTuple" prop_IOTuple
+  , testProperty "IOUTuple" prop_IOUTuple
+  , testProperty "STTuple" prop_STTuple
+  , testProperty "LazySTTuple" prop_LazySTTuple
+  , testProperty "STUTuple" prop_STUTuple
+  , testProperty "LazySTUTuple" prop_LazySTUTuple
+  , testProperty "StorableTuple" prop_StorableTuple
+  , testProperty "StorableTuple'" (prop_StorableTuple' ::
+                                      Int16 -> Int16 ->
+                                      Float -> Float ->
+                                      Double -> Double ->
+                                      Float -> Float ->
+                                      Word16 -> Word16 ->
+                                      Property)
+  ]
 
 varWriteRead var a = do
   a' <- run $ do
@@ -213,7 +213,7 @@ prop_STUTuple (SomeByteArraySlice2 a a',
                SomeByteArraySlice2 b b',
                SomeByteArraySlice2 c c',
                SomeByteArraySlice2 d d',
-               SomeByteArraySlice2 e e')  = monadicST $ do
+               SomeByteArraySlice2 e e') = monadicST $ do
   let xs = (a, b, c, d, e)
   tuple <- run $ thawSTUTuple xs
   tupleWriteRead tuple (a', b', c', d', e')
@@ -226,7 +226,7 @@ prop_LazySTUTuple (SomeByteArraySlice2 a a',
                    SomeByteArraySlice2 b b',
                    SomeByteArraySlice2 c c',
                    SomeByteArraySlice2 d d',
-                   SomeByteArraySlice2 e e')  = monadicLazyST $ do
+                   SomeByteArraySlice2 e e') = monadicLazyST $ do
   let xs = (a, b, c, d, e)
   tuple <- run $ thawLazySTUTuple xs
   tupleWriteRead tuple (a', b', c', d', e')
@@ -239,7 +239,7 @@ prop_StorableTuple (SomeStorable2 a a',
                     SomeStorable2 b b',
                     SomeStorable2 c c',
                     SomeStorable2 d d',
-                    SomeStorable2 e e') = prop_StorableTuple' a a' b b' c c' d d' e e'  
+                    SomeStorable2 e e') = prop_StorableTuple' a a' b b' c c' d d' e e'
 
 prop_StorableTuple' a a' b b' c c' d d' e e' = monadicIO $ do
   let xs = (a, b, c, d, e)
@@ -362,7 +362,7 @@ instance Arbitrary StorableDict where
     , StorableDict (Proxy :: Proxy Char)
     , StorableDict (Proxy :: Proxy Double)
     , StorableDict (Proxy :: Proxy Float)
-    , StorableDict (Proxy :: Proxy Int)        
+    , StorableDict (Proxy :: Proxy Int)
     , StorableDict (Proxy :: Proxy Int8)
     , StorableDict (Proxy :: Proxy Int16)
     , StorableDict (Proxy :: Proxy Int32)
@@ -376,11 +376,11 @@ instance Arbitrary StorableDict where
 
 type IntegerTuple = (Integer, Integer, Integer, Integer, Integer)
 
-monadicLazyST :: (forall s. PropertyM (Lazy.ST s) a) -> Property
+monadicLazyST :: (forall s . PropertyM (Lazy.ST s) a) -> Property
 monadicLazyST m = property (runLazySTGen (monadic' m))
 
-runLazySTGen :: (forall s. Gen (Lazy.ST s a)) -> Gen a
-runLazySTGen g = MkGen $ \r n -> Lazy.runST (unGen g r n)
+runLazySTGen :: (forall s . Gen (Lazy.ST s a)) -> Gen a
+runLazySTGen g = MkGen $ \ r n -> Lazy.runST (unGen g r n)
 
 size :: Gen Int
 size = MkGen $ \ _ n -> n

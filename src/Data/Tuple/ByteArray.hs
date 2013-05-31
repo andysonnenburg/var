@@ -4,7 +4,8 @@
   , DeriveDataTypeable
   , FlexibleInstances
   , FlexibleContexts
-  , MultiParamTypeClasses #-}
+  , MultiParamTypeClasses
+  , Rank2Types #-}
 #ifdef LANGUAGE_Trustworthy
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -22,7 +23,6 @@ import Control.Monad.Prim
 
 import Data.ByteArraySlice.Unsafe
 import Data.Prim.ByteArray
-import Data.Proxy
 import Data.Tuple.Fields
 import Data.Tuple.Fields.Proxy
 import Data.Tuple.MTuple
@@ -167,6 +167,18 @@ instance ( MonadPrim m
   read9 = unsafeRead offset9
   write9 = unsafeWrite offset9
 
+unsafeRead :: ( ByteArraySlice a
+              , MonadPrim m
+              ) => (forall f . f t -> Int) -> ByteArrayTuple (World m) t -> m a
+unsafeRead offset t@(ByteArrayTuple array) =
+  runPrim $ readByteOff array (offset t)
+
+unsafeWrite :: ( ByteArraySlice a
+               , MonadPrim m
+               ) => (forall f . f t -> Int) -> ByteArrayTuple (World m) t -> a -> m ()
+unsafeWrite offset t@(ByteArrayTuple array) a =
+  runPrim $ writeByteOff array (offset t) a
+
 offset1 :: t a -> Int
 offset1 _ = 0
 
@@ -228,18 +240,3 @@ offset9 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field8 a)
            ) => t a -> Int
 offset9 a = plusByteSize (offset8 a) (reproxyField8 a)
-
-proxyFields :: t a -> Proxy a
-proxyFields = reproxy
-
-unsafeRead :: ( ByteArraySlice a
-              , MonadPrim m
-              ) => (Proxy t -> Int) -> ByteArrayTuple (World m) t -> m a
-unsafeRead offset t@(ByteArrayTuple array) =
-  runPrim $ readByteOff array (offset (proxyFields t))
-
-unsafeWrite :: ( ByteArraySlice a
-               , MonadPrim m
-               ) => (Proxy t -> Int) -> ByteArrayTuple (World m) t -> a -> m ()
-unsafeWrite offset t@(ByteArrayTuple array) a =
-  runPrim $ writeByteOff array (offset (proxyFields t)) a

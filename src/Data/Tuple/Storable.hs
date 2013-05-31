@@ -207,23 +207,11 @@ instance ( Fields t
   read9 = unsafeRead offset9
   write9 = unsafeWrite offset9
 
-class Fields a => StorableFields a where
-  plusSize :: Int -> t a -> Int
-  peekFieldsOff :: Ptr Void -> Int -> IO a
-  pokeFieldsOff :: Ptr Void -> Int -> a -> IO ()
+withStorableTuple :: StorableTuple a -> (forall e . Ptr e -> IO b) -> IO b
+withStorableTuple tuple f = withForeignPtr (unStorableTuple tuple) f
 
-  default plusSize :: (Generic a, GStorableFields (Rep a)) => Int -> t a -> Int
-  plusSize i = gplusSize i . reproxyRep
-
-  default peekFieldsOff :: ( Generic a
-                           , GStorableFields (Rep a)
-                           ) => Ptr Void -> Int -> IO a
-  peekFieldsOff ptr = fmap to . gpeekFieldsOff ptr
-
-  default pokeFieldsOff :: ( Generic a
-                           , GStorableFields (Rep a)
-                           ) => Ptr Void -> Int -> a -> IO ()
-  pokeFieldsOff ptr i = gpokeFieldsOff ptr i . from
+touchStorableTuple :: StorableTuple a -> IO ()
+touchStorableTuple = touchForeignPtr . unStorableTuple
 
 thawTuple' :: StorableFields a => a -> IO (StorableTuple a)
 thawTuple' a = do
@@ -237,68 +225,15 @@ freezeTuple' (StorableTuple ptr) = withForeignPtr ptr $ flip peekFieldsOff 0
 sizeOf' :: StorableFields a => a -> Int
 sizeOf' = plusSize 0 . proxy
 
-class GStorableFields a where
-  gplusSize :: Int -> t (a p) -> Int
-  gpeekFieldsOff :: Ptr Void -> Int -> IO (a p)
-  gpokeFieldsOff :: Ptr Void -> Int -> a p -> IO ()
+unsafeRead :: Storable a => (forall f . f t -> Int) -> StorableTuple t -> IO a
+unsafeRead offset t = m
+  where
+    m = withForeignPtr (unStorableTuple t) $ \ ptr ->
+      peekByteOff ptr (align (offset t) (alignment' m))
 
-instance GStorableFields U1 where
-  gplusSize = const
-  gpeekFieldsOff _ _ = return U1
-  gpokeFieldsOff _ _ _ = return ()
-
-instance Storable c => GStorableFields (K1 i c) where
-  gplusSize i = plusSize' i . reproxyK1
-  gpeekFieldsOff ptr i = m
-    where
-      m = K1 <$> peekByteOff (castPtr ptr) (align i $ alignment' $ reproxyK1 m)
-  gpokeFieldsOff ptr i (K1 a) =
-    pokeByteOff (castPtr ptr) (align i $ alignment a) a
-
-instance GStorableFields f => GStorableFields (M1 i c f) where
-  gplusSize i = gplusSize i . reproxyM1
-  gpeekFieldsOff ptr = fmap M1 . gpeekFieldsOff ptr
-  gpokeFieldsOff ptr i = gpokeFieldsOff ptr i . unM1
-
-instance (GStorableFields a, GStorableFields b) => GStorableFields (a :*: b) where
-  gplusSize i a = gplusSize (gplusSize i (reproxyFst a)) (reproxySnd a)
-  gpeekFieldsOff ptr i = do
-    a <- gpeekFieldsOff ptr i
-    b <- gpeekFieldsOff ptr (gplusSize i (proxy a))
-    return $ a :*: b
-  gpokeFieldsOff ptr i (a :*: b) = do
-    gpokeFieldsOff ptr i a
-    gpokeFieldsOff ptr (gplusSize i (proxy a)) b
-
-instance StorableFields ()
-instance (Storable a, Storable b) => StorableFields (a, b)
-instance (Storable a, Storable b, Storable c) => StorableFields (a, b, c)
-instance ( Storable a
-         , Storable b
-         , Storable c
-         , Storable d
-         ) => StorableFields (a, b, c, d)
-instance ( Storable a
-         , Storable b
-         , Storable c
-         , Storable d
-         , Storable e
-         ) => StorableFields (a, b, c, d, e)
-instance ( Storable a
-         , Storable b
-         , Storable c
-         , Storable d
-         , Storable e
-         , Storable f
-         ) => StorableFields (a, b, c, d, e, f)
-instance ( Storable a
-         , Storable b
-         , Storable c
-         , Storable d
-         , Storable e
-         , Storable f
-         , Storable g
-         ) => StorableFields (a, b, c, d, e, f, g)
+unsafeWrite :: Storable a => (forall f . f t -> Int) -> StorableTuple t -> a -> IO ()
+unsafeWrite offset t a = withForeignPtr (unStorableTuple t) $ \ ptr ->
+  pokeByteOff ptr (align (offset t) (alignment a)) a
 
 offset1 :: t a -> Int
 offset1 _ = 0
@@ -377,21 +312,83 @@ size = sizeOf . unproxy
 unproxy :: t a -> a
 unproxy = undefined
 
-proxyFields :: t a -> Proxy a
-proxyFields = reproxy
+class Fields a => StorableFields a where
+  plusSize :: Int -> t a -> Int
+  peekFieldsOff :: Ptr Void -> Int -> IO a
+  pokeFieldsOff :: Ptr Void -> Int -> a -> IO ()
 
-unsafeRead :: Storable a => (Proxy t -> Int) -> StorableTuple t -> IO a
-unsafeRead offset t = m
-  where
-    m = withForeignPtr (unStorableTuple t) $ \ ptr ->
-      peekByteOff ptr (align (offset (proxyFields t)) (alignment' m))
+  default plusSize :: (Generic a, GStorableFields (Rep a)) => Int -> t a -> Int
+  plusSize i = gplusSize i . reproxyRep
 
-unsafeWrite :: Storable a => (Proxy t -> Int) -> StorableTuple t -> a -> IO ()
-unsafeWrite offset t a = withForeignPtr (unStorableTuple t) $ \ ptr ->
-  pokeByteOff ptr (align (offset (proxyFields t)) (alignment a)) a
+  default peekFieldsOff :: ( Generic a
+                           , GStorableFields (Rep a)
+                           ) => Ptr Void -> Int -> IO a
+  peekFieldsOff ptr = fmap to . gpeekFieldsOff ptr
 
-withStorableTuple :: StorableTuple a -> (forall e . Ptr e -> IO b) -> IO b
-withStorableTuple tuple f = withForeignPtr (unStorableTuple tuple) f
+  default pokeFieldsOff :: ( Generic a
+                           , GStorableFields (Rep a)
+                           ) => Ptr Void -> Int -> a -> IO ()
+  pokeFieldsOff ptr i = gpokeFieldsOff ptr i . from
 
-touchStorableTuple :: StorableTuple a -> IO ()
-touchStorableTuple = touchForeignPtr . unStorableTuple
+class GStorableFields a where
+  gplusSize :: Int -> t (a p) -> Int
+  gpeekFieldsOff :: Ptr Void -> Int -> IO (a p)
+  gpokeFieldsOff :: Ptr Void -> Int -> a p -> IO ()
+
+instance GStorableFields U1 where
+  gplusSize = const
+  gpeekFieldsOff _ _ = return U1
+  gpokeFieldsOff _ _ _ = return ()
+
+instance Storable c => GStorableFields (K1 i c) where
+  gplusSize i = plusSize' i . reproxyK1
+  gpeekFieldsOff ptr i = m
+    where
+      m = K1 <$> peekByteOff (castPtr ptr) (align i $ alignment' $ reproxyK1 m)
+  gpokeFieldsOff ptr i (K1 a) =
+    pokeByteOff (castPtr ptr) (align i $ alignment a) a
+
+instance GStorableFields f => GStorableFields (M1 i c f) where
+  gplusSize i = gplusSize i . reproxyM1
+  gpeekFieldsOff ptr = fmap M1 . gpeekFieldsOff ptr
+  gpokeFieldsOff ptr i = gpokeFieldsOff ptr i . unM1
+
+instance (GStorableFields a, GStorableFields b) => GStorableFields (a :*: b) where
+  gplusSize i a = gplusSize (gplusSize i (reproxyFst a)) (reproxySnd a)
+  gpeekFieldsOff ptr i = do
+    a <- gpeekFieldsOff ptr i
+    b <- gpeekFieldsOff ptr (gplusSize i (proxy a))
+    return $ a :*: b
+  gpokeFieldsOff ptr i (a :*: b) = do
+    gpokeFieldsOff ptr i a
+    gpokeFieldsOff ptr (gplusSize i (proxy a)) b
+
+instance StorableFields ()
+instance (Storable a, Storable b) => StorableFields (a, b)
+instance (Storable a, Storable b, Storable c) => StorableFields (a, b, c)
+instance ( Storable a
+         , Storable b
+         , Storable c
+         , Storable d
+         ) => StorableFields (a, b, c, d)
+instance ( Storable a
+         , Storable b
+         , Storable c
+         , Storable d
+         , Storable e
+         ) => StorableFields (a, b, c, d, e)
+instance ( Storable a
+         , Storable b
+         , Storable c
+         , Storable d
+         , Storable e
+         , Storable f
+         ) => StorableFields (a, b, c, d, e, f)
+instance ( Storable a
+         , Storable b
+         , Storable c
+         , Storable d
+         , Storable e
+         , Storable f
+         , Storable g
+         ) => StorableFields (a, b, c, d, e, f, g)

@@ -15,12 +15,15 @@ module Data.ByteArraySlice.Unsafe
        ( MutableByteArray
        , module Control.Monad.Prim
        , ByteArraySlice (..)
+       , plusByteSizeDefault
+       , readByteOffDefault
+       , writeByteOffDefault
        , byteSizeOf
        ) where
 
 import Control.Monad.Prim
 
-import Data.ByteArrayElem.Unsafe
+import qualified Data.ByteArrayElem.Unsafe as ByteArrayElem
 import Data.Int
 import Data.Prim.ByteArray
 import Data.Proxy
@@ -37,20 +40,36 @@ class ByteArraySlice a where
   writeByteOff :: MutableByteArray s -> Int -> a -> Prim s ()
 
   default plusByteSize :: (Generic a, GByteArraySlice (Rep a)) => Int -> t a -> Int
-  plusByteSize i = gplusByteSize i . reproxyRep
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
 
   default readByteOff :: ( Generic a
                          , GByteArraySlice (Rep a)
                          ) => MutableByteArray s -> Int -> Prim s a
-  readByteOff array = fmap to . greadByteOff array
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
 
   default writeByteOff :: ( Generic a
                           , GByteArraySlice (Rep a)
                           ) => MutableByteArray s -> Int -> a -> Prim s ()
-  writeByteOff array i = gwriteByteOff array i . from
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
+plusByteSizeDefault :: (Generic a, GByteArraySlice (Rep a)) => Int -> t a -> Int
+plusByteSizeDefault i = gplusByteSize i . reproxyRep
+{-# INLINE plusByteSizeDefault #-}
+
+readByteOffDefault :: ( Generic a
+                      , GByteArraySlice (Rep a)
+                      ) => MutableByteArray s -> Int -> Prim s a
+readByteOffDefault array = fmap to . greadByteOff array
+{-# INLINE readByteOffDefault #-}
+
+writeByteOffDefault :: ( Generic a
+                       , GByteArraySlice (Rep a)
+                       ) => MutableByteArray s -> Int -> a -> Prim s ()
+writeByteOffDefault array i = gwriteByteOff array i . from
+{-# INLINE writeByteOffDefault #-}
 
 byteSizeOf :: ByteArraySlice a => a -> Int
 byteSizeOf = plusByteSize 0 . proxy
@@ -100,37 +119,57 @@ instance (GByteArraySlice a, GByteArraySlice b) => GByteArraySlice (a :*: b) whe
   {-# INLINE gwriteByteOff #-}
 
 instance ByteArraySlice () where
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
 instance (ByteArraySlice a, ByteArraySlice b) => ByteArraySlice (a, b) where
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
          ) => ByteArraySlice (a, b, c) where
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
          , ByteArraySlice d
          ) => ByteArraySlice (a, b, c, d) where
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
          , ByteArraySlice d
          , ByteArraySlice e
          ) => ByteArraySlice (a, b, c, d, e) where
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
@@ -138,9 +177,13 @@ instance ( ByteArraySlice a
          , ByteArraySlice e
          , ByteArraySlice f
          ) => ByteArraySlice (a, b, c, d, e, f) where
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
 instance ( ByteArraySlice a
          , ByteArraySlice b
          , ByteArraySlice c
@@ -149,171 +192,145 @@ instance ( ByteArraySlice a
          , ByteArraySlice f
          , ByteArraySlice g
          ) => ByteArraySlice (a, b, c, d, e, f, g) where
+  plusByteSize = plusByteSizeDefault
   {-# INLINE plusByteSize #-}
+  readByteOff = readByteOffDefault
   {-# INLINE readByteOff #-}
+  writeByteOff = writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Bool where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Char where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Float where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Double where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int8 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int16 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int32 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Int64 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word8 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word16 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word32 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice Word64 where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice (StablePtr a) where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice (FunPtr a) where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
 
 instance ByteArraySlice (Ptr a) where
-  plusByteSize = plusByteSizeDefault
+  plusByteSize = ByteArrayElem.plusByteSizeDefault
   {-# INLINE plusByteSize #-}
-  readByteOff = readByteOffDefault
+  readByteOff = ByteArrayElem.readByteOffDefault
   {-# INLINE readByteOff #-}
-  writeByteOff = writeByteOffDefault
+  writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
-
-plusByteSizeDefault :: ByteArrayElem a => Int -> t a -> Int
-plusByteSizeDefault i a = case i `rem` byteSize' of
-  0 -> i + byteSize'
-  i' -> i + (byteSize' - i') + byteSize'
-  where
-    byteSize' = byteSize a
-{-# INLINE plusByteSizeDefault #-}
-
-readByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> Prim s a
-readByteOffDefault array i = m
-  where
-    m = readElemOff array $ case i `quotRem'` byteSize' of
-      (q, 0) -> q
-      (q, _) -> q + 1
-    byteSize' = byteSize m
-{-# INLINE readByteOffDefault #-}
-
-writeByteOffDefault :: ByteArrayElem a => MutableByteArray s -> Int -> a -> Prim s ()
-writeByteOffDefault array i a = writeElemOff array i' a
-  where
-    i' = case i `quotRem'` byteSize (proxy a) of
-      (q, 0) -> q
-      (q, _) -> q + 1
-{-# INLINE writeByteOffDefault #-}
-
-quotRem' :: Integral a => a -> a -> (a, a)
-quotRem' x y = (x `quot` y, x `rem` y)
-{-# INLINE quotRem' #-}

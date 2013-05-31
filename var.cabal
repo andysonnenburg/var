@@ -81,6 +81,8 @@ library
     cpp-options: -DFEATURE_KindVariables
   if impl(ghc >= 7.6)
     cpp-options: -DDEPRECATED_Par0
+  if impl(ghc >= 7.4)
+    cpp-options: -DFEATURE_InlineDefaultMethods
   other-extensions:
     CPP,
     DeriveDataTypeable,
@@ -127,4 +129,10 @@ benchmark user
   hs-source-dirs: benchmarks
   main-is: user.hs
   build-depends: base, criterion, array, deepseq, var
+  if impl(ghc >= 7.2 && < 7.6)
+    build-depends: ghc-prim
   ghc-options: -Wall -fwarn-tabs -O2
+  if impl(ghc >= 7.4)
+    cpp-options: -DFEATURE_TypeFamilyDefaults
+  if impl(ghc >= 7.4)
+    cpp-options: -DFEATURE_InlineDefaultMethods
