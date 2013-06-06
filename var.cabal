@@ -28,8 +28,7 @@ library
   exposed-modules:
     Data.ByteArraySlice
     Data.ByteArraySlice.Unsafe
-    Data.Tuple.Fields
-    Data.Tuple.Fields.Unsafe
+    Data.Tuple.ITuple
     Data.Tuple.IO
     Data.Tuple.MTuple
     Data.Tuple.ST
@@ -38,7 +37,6 @@ library
     Data.Var.Class
     Data.Var.IO
     Data.Var.ST
-    Data.Var.STM
     Data.Var.Storable
   other-modules:
     Control.Monad.Prim
@@ -51,7 +49,7 @@ library
     Data.STVar
     Data.Tuple.Array
     Data.Tuple.ByteArray
-    Data.Tuple.Fields.Proxy
+    Data.Tuple.ITuple.Proxy
     Data.TVar
     Data.Var.ByteArray
     Type.List

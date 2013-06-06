@@ -1,15 +1,22 @@
+{-# LANGUAGE CPP #-}
+#ifdef LANGUAGE_DataKinds
+{-# LANGUAGE DataKinds #-}
+#endif
 {-# LANGUAGE
-    CPP
-  , DefaultSignatures
+    DefaultSignatures
   , DeriveDataTypeable
   , FlexibleInstances
   , FlexibleContexts
+  , GADTs
   , MultiParamTypeClasses
   , Rank2Types #-}
 #ifdef LANGUAGE_Trustworthy
 {-# LANGUAGE Trustworthy #-}
 #endif
-{-# LANGUAGE TypeFamilies, UndecidableInstances #-}
+{-# LANGUAGE
+    TypeFamilies
+  , TypeOperators
+  , UndecidableInstances #-}
 {- |
 Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
@@ -17,14 +24,17 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.ByteArray
        ( ByteArrayTuple
+       , ByteArrayList
        ) where
 
+import Control.Applicative
 import Control.Monad.Prim
 
 import Data.ByteArraySlice.Unsafe
 import Data.Prim.ByteArray
-import Data.Tuple.Fields
-import Data.Tuple.Fields.Proxy
+import Data.Proxy
+import Data.Tuple.ITuple
+import Data.Tuple.ITuple.Proxy
 import Data.Tuple.MTuple
 import Data.Typeable (Typeable)
 
@@ -32,110 +42,88 @@ newtype ByteArrayTuple s a = ByteArrayTuple (MutableByteArray s) deriving (Eq, T
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          ) => MTuple (ByteArrayTuple s) t m where
   thawTuple a = runPrim $ do
-    array <- newByteArray (byteSizeOf a)
-    writeByteOff array 0 a
+    array <- newByteArray (byteSizeOf' (toTuple a))
+    writeByteOff' array 0 (toTuple a)
     return $ ByteArrayTuple array
-  freezeTuple (ByteArrayTuple array) = runPrim $ readByteOff array 0
+  freezeTuple (ByteArrayTuple array) = runPrim $ fromTuple <$> readByteOff' array 0
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
-         , a ~ Field1 t
-         , ByteArraySlice a
-         ) => MField1 (ByteArrayTuple s) t a m where
+         , ITuple t
+         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Field1 t)
+         ) => MField1 (ByteArrayTuple s) t m where
   read1 = unsafeRead offset1
   write1 = unsafeWrite offset1
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          , ByteArraySlice (Field1 t)
-         , a ~ Field2 t
-         , ByteArraySlice a
-         ) => MField2 (ByteArrayTuple s) t a m where
+         , ByteArraySlice (Field2 t)
+         ) => MField2 (ByteArrayTuple s) t m where
   read2 = unsafeRead offset2
   write2 = unsafeWrite offset2
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
-         , a ~ Field3 t
-         , ByteArraySlice a
-         ) => MField3 (ByteArrayTuple s) t a m where
+         , ByteArraySlice (Field3 t)
+         ) => MField3 (ByteArrayTuple s) t m where
   read3 = unsafeRead offset3
   write3 = unsafeWrite offset3
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
-         , a ~ Field4 t
-         , ByteArraySlice a
-         ) => MField4 (ByteArrayTuple s) t a m where
+         , ByteArraySlice (Field4 t)
+         ) => MField4 (ByteArrayTuple s) t m where
   read4 = unsafeRead offset4
   write4 = unsafeWrite offset4
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
-         , ByteArraySlice (Field1 t)
-         , ByteArraySlice (Field2 t)
-         , ByteArraySlice (Field3 t)
-         , ByteArraySlice (Field4 t)
-         , a ~ Field5 t
-         , ByteArraySlice a
-         ) => MField5 (ByteArrayTuple s) t a m where
-  read5 = unsafeRead offset5
-  write5 = unsafeWrite offset5
-
-instance ( MonadPrim m
-         , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
          , ByteArraySlice (Field4 t)
          , ByteArraySlice (Field5 t)
-         , a ~ Field6 t
-         , ByteArraySlice a
-         ) => MField6 (ByteArrayTuple s) t a m where
-  read6 = unsafeRead offset6
-  write6 = unsafeWrite offset6
+         ) => MField5 (ByteArrayTuple s) t m where
+  read5 = unsafeRead offset5
+  write5 = unsafeWrite offset5
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
          , ByteArraySlice (Field4 t)
          , ByteArraySlice (Field5 t)
          , ByteArraySlice (Field6 t)
-         , a ~ Field7 t
-         , ByteArraySlice a
-         ) => MField7 (ByteArrayTuple s) t a m where
-  read7 = unsafeRead offset7
-  write7 = unsafeWrite offset7
+         ) => MField6 (ByteArrayTuple s) t m where
+  read6 = unsafeRead offset6
+  write6 = unsafeWrite offset6
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -143,16 +131,14 @@ instance ( MonadPrim m
          , ByteArraySlice (Field5 t)
          , ByteArraySlice (Field6 t)
          , ByteArraySlice (Field7 t)
-         , a ~ Field8 t
-         , ByteArraySlice a
-         ) => MField8 (ByteArrayTuple s) t a m where
-  read8 = unsafeRead offset8
-  write8 = unsafeWrite offset8
+         ) => MField7 (ByteArrayTuple s) t m where
+  read7 = unsafeRead offset7
+  write7 = unsafeWrite offset7
 
 instance ( MonadPrim m
          , s ~ World m
-         , Fields t
-         , ByteArraySlice t
+         , ITuple t
+         , ByteArrayList (ListRep t)
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -161,9 +147,24 @@ instance ( MonadPrim m
          , ByteArraySlice (Field6 t)
          , ByteArraySlice (Field7 t)
          , ByteArraySlice (Field8 t)
-         , a ~ Field9 t
-         , ByteArraySlice a
-         ) => MField9 (ByteArrayTuple s) t a m where
+         ) => MField8 (ByteArrayTuple s) t m where
+  read8 = unsafeRead offset8
+  write8 = unsafeWrite offset8
+
+instance ( MonadPrim m
+         , s ~ World m
+         , ITuple t
+         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Field1 t)
+         , ByteArraySlice (Field2 t)
+         , ByteArraySlice (Field3 t)
+         , ByteArraySlice (Field4 t)
+         , ByteArraySlice (Field5 t)
+         , ByteArraySlice (Field6 t)
+         , ByteArraySlice (Field7 t)
+         , ByteArraySlice (Field8 t)
+         , ByteArraySlice (Field9 t)
+         ) => MField9 (ByteArrayTuple s) t m where
   read9 = unsafeRead offset9
   write9 = unsafeWrite offset9
 
@@ -240,3 +241,33 @@ offset9 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field8 a)
            ) => t a -> Int
 offset9 a = plusByteSize (offset8 a) (reproxyField8 a)
+
+class ByteArrayList xs where
+  plusByteSize' :: Int -> t xs -> Int
+  readByteOff' :: MutableByteArray s -> Int -> Prim s (Tuple xs)
+  writeByteOff' :: MutableByteArray s -> Int -> Tuple xs -> Prim s ()
+
+instance ByteArrayList Nil where
+  plusByteSize' = const
+  readByteOff' _ _ = return U
+  writeByteOff' _ _ _ = return ()
+
+instance (ByteArraySlice x, ByteArrayList xs) => ByteArrayList (x :| xs) where
+  plusByteSize' i xs =
+    plusByteSize' (plusByteSize i (reproxyHead xs)) (reproxyTail xs)
+  readByteOff' array i = do
+    x <- readByteOff array i
+    xs <- readByteOff' array (plusByteSize i (proxy x))
+    return $ x :* xs
+  writeByteOff' array i (x :* xs) = do
+    writeByteOff array i x
+    writeByteOff' array (plusByteSize i (proxy x)) xs
+
+byteSizeOf' :: ByteArrayList xs => t xs -> Int
+byteSizeOf' = plusByteSize' 0
+
+reproxyHead :: t (x :| xs) -> Proxy x
+reproxyHead = reproxy
+
+reproxyTail :: t (x :| xs) -> Proxy xs
+reproxyTail = reproxy

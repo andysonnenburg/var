@@ -3,7 +3,7 @@ Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
-module Data.Tuple.Fields.Proxy
+module Data.Tuple.ITuple.Proxy
        ( reproxyField1
        , reproxyField2
        , reproxyField3
@@ -15,7 +15,7 @@ module Data.Tuple.Fields.Proxy
        ) where
 
 import Data.Proxy
-import Data.Tuple.Fields
+import Data.Tuple.ITuple
 
 reproxyField1 :: t a -> Proxy (Field1 a)
 reproxyField1 = reproxy

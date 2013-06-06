@@ -1,4 +1,9 @@
-{-# LANGUAGE CPP, DeriveGeneric, TypeFamilies, TypeOperators #-}
+{-# LANGUAGE
+    CPP
+  , DeriveGeneric
+  , FlexibleContexts
+  , TypeFamilies
+  , TypeOperators #-}
 module Main (main) where
 
 import Control.Applicative
@@ -8,8 +13,7 @@ import Control.Monad.ST
 import Criterion
 import Criterion.Main (defaultMain)
 
-import Data.ByteArraySlice.Unsafe
-import Data.Tuple.Fields.Unsafe
+import Data.Tuple.ITuple
 import Data.Tuple.ST
 import Data.Word
 
@@ -29,8 +33,7 @@ data Uninlined
     {-# UNPACK #-} !Float
     {-# UNPACK #-} !Double deriving Generic
 
-instance ByteArraySlice Uninlined
-instance Fields Uninlined
+instance ITuple Uninlined
 #ifndef FEATURE_TypeFamilyDefaults
   where type ListRep Uninlined = Char :| Int :| Word :| Float :| Double :| Nil
 #endif
@@ -63,16 +66,7 @@ data Inlined
     {-# UNPACK #-} !Float
     {-# UNPACK #-} !Double deriving Generic
 
-instance ByteArraySlice Inlined where
-  {-# INLINE plusByteSize #-}
-  {-# INLINE readByteOff #-}
-  {-# INLINE writeByteOff #-}
-#ifndef FEATURE_InlineDefaultMethods
-  plusByteSize = plusByteSizeDefault
-  readByteOff = readByteOffDefault
-  writeByteOff = writeByteOffDefault
-#endif
-instance Fields Inlined
+instance ITuple Inlined
 #ifndef FEATURE_TypeFamilyDefaults
   where type ListRep Inlined = Char :| Int :| Word :| Float :| Double :| Nil
 #endif
@@ -97,5 +91,5 @@ inlined n = runST $ do
     <*> read4 v
     <*> read5 v
 
-newSTUTuple :: (ByteArraySlice a, Fields a) => a -> ST s (STUTuple s a)
+newSTUTuple :: (ITuple a, ByteArrayList (ListRep a)) => a -> ST s (STUTuple s a)
 newSTUTuple = thawTuple

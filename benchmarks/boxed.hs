@@ -9,7 +9,7 @@ import Criterion
 import Criterion.Main (defaultMain)
 
 import Data.Array.ST
-import Data.Tuple.Fields
+import Data.Tuple.ITuple
 import Data.Tuple.ST
 import Data.Var.ST
 
@@ -85,7 +85,7 @@ tuples n = runST $ do
     <*> read6 v
     <*> read7 v
 
-newSTTuple :: Fields a => a -> ST s (STTuple s a)
+newSTTuple :: (ITuple a, ArrayList (ListRep a)) => a -> ST s (STTuple s a)
 newSTTuple = thawTuple
 
 arrays :: Int -> [(Int, Int, Int, Int, Int, Int, Int)]

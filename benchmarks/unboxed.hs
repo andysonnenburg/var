@@ -10,7 +10,7 @@ import Criterion.Main (defaultMain)
 
 import Data.Array.ST
 import Data.ByteArraySlice
-import Data.Tuple.Fields
+import Data.Tuple.ITuple
 import Data.Tuple.ST
 import Data.Var.ST
 
@@ -86,7 +86,7 @@ tuples n = runST $ do
     <*> read6 v
     <*> read7 v
 
-newSTUTuple :: (ByteArraySlice a, Fields a) => a -> ST s (STUTuple s a)
+newSTUTuple :: (ITuple a, ByteArrayList (ListRep a)) => a -> ST s (STUTuple s a)
 newSTUTuple = thawTuple
 
 arrays :: Int -> [(Int, Int, Int, Int, Int, Int, Int)]
