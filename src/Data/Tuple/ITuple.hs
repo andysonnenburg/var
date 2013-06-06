@@ -27,11 +27,8 @@ module Data.Tuple.ITuple
        , toTupleDefault
        , fromTupleDefault
        , Tuple (..)
-       , _1, _2, _3, _4, _5, _6, _7, _8, _9
        , Field1, Field2, Field3, Field4, Field5, Field6, Field7, Field8, Field9
        ) where
-
-import Control.Applicative
 
 import Data.Functor.Identity
 
@@ -80,32 +77,61 @@ instance ITuple (Identity a) where
   toTuple = (:* U) . runIdentity
   fromTuple = uncons $ unnil . Identity
 
+#ifndef FEATURE_AssociatedTypeFamilyNonClassParameters
+#ifdef LANGUAGE_DataKinds
+type family GCons (t :: * -> *) (xs :: List *) :: List *
+#else
+type family GCons (t :: * -> *) xs
+#endif
+#endif
 class GITuple t where
+#ifdef FEATURE_AssociatedTypeFamilyNonClassParameters
 #ifdef LANGUAGE_DataKinds
   type GCons t xs :: List *
 #else
   type GCons t xs
 #endif
+#endif
   gcons :: t p -> Tuple xs -> Tuple (GCons t xs)
   guncons :: (t p -> Tuple xs -> r) -> Tuple (GCons t xs) -> r
 
+#ifndef FEATURE_AssociatedTypeFamilyNonClassParameters
+type instance GCons U1 xs = xs
+#endif
 instance GITuple U1 where
+#ifdef FEATURE_AssociatedTypeFamilyNonClassParameters
   type GCons U1 xs = xs
+#endif
   gcons = flip const
   guncons = ($ U1)
 
+#ifndef FEATURE_AssociatedTypeFamilyNonClassParameters
+type instance GCons (K1 i c) xs = c :| xs
+#endif
 instance GITuple (K1 i c) where
+#ifdef FEATURE_AssociatedTypeFamilyNonClassParameters
   type GCons (K1 i c) xs = c :| xs
+#endif
   gcons = (:*) . unK1
   guncons f = uncons $ \ c ys -> f (K1 c) ys
 
+#ifndef FEATURE_AssociatedTypeFamilyNonClassParameters
+type instance GCons (M1 i c f) xs = GCons f xs
+#endif
 instance GITuple f => GITuple (M1 i c f) where
+#ifdef FEATURE_AssociatedTypeFamilyNonClassParameters
   type GCons (M1 i c f) xs = GCons f xs
+#endif
   gcons = gcons . unM1
   guncons f = guncons $ f . M1
 
+#ifndef FEATURE_AssociatedTypeFamilyNonClassParameters
+type instance GCons (a :*: b) xs = GCons a (GCons b xs)
+#endif
 instance (GITuple a, GITuple b) => GITuple (a :*: b) where
+#ifdef FEATURE_AssociatedTypeFamilyNonClassParameters
   type GCons (a :*: b) xs = GCons a (GCons b xs)
+#endif
   gcons (a :*: b) = gcons a . gcons b
   guncons f = guncons $ \ a -> guncons $ \ b -> f $ a :*: b
 
@@ -138,78 +164,6 @@ instance ITuple (a, b, c, d, e, f, g)
   where type ListRep (a, b, c, d, e, f, g) = ListRepDefault (a, b, c, d, e, f, g)
 #endif
 
-_1 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a :| as)
-      , ITuple t
-      , ListRep t ~ (b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_1 = tuple._head
-
-_2 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_2 = tuple._tail._head
-
-_3 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a2 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| a2 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_3 = tuple._tail._tail._head
-
-_4 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a2 :| a3 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| a2 :| a3 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_4 = tuple._tail._tail._tail._head
-
-_5 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a2 :| a3 :| a4 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| a2 :| a3 :| a4 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_5 = tuple._tail._tail._tail._tail._head
-
-_6 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a2 :| a3 :| a4 :| a5 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| a2 :| a3 :| a4 :| a5 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_6 = tuple._tail._tail._tail._tail._tail._head
-
-_7 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a2 :| a3 :| a4 :| a5 :| a6 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| a2 :| a3 :| a4 :| a5 :| a6 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_7 = tuple._tail._tail._tail._tail._tail._tail._head
-
-_8 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a2 :| a3 :| a4 :| a5 :| a6 :| a7 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| a2 :| a3 :| a4 :| a5 :| a6 :| a7 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_8 = tuple._tail._tail._tail._tail._tail._tail._tail._head
-
-_9 :: ( Functor f
-      , ITuple s
-      , ListRep s ~ (a1 :| a2 :| a3 :| a4 :| a5 :| a6 :| a7 :| a8 :| a :| as)
-      , ITuple t
-      , ListRep t ~ (a1 :| a2 :| a3 :| a4 :| a5 :| a6 :| a7 :| a8 :| b :| as)
-      ) => (a -> f b) -> s -> f t -- ^
-_9 = tuple._tail._tail._tail._tail._tail._tail._tail._tail._head
-
 type ToList a = ListRep a
 
 type Field1 a = Find N0 (ToList a)
@@ -221,20 +175,6 @@ type Field6 a = Find N5 (ToList a)
 type Field7 a = Find N6 (ToList a)
 type Field8 a = Find N7 (ToList a)
 type Field9 a = Find N8 (ToList a)
-
-_head :: Functor f => (x -> f y) -> Tuple (x :| xs) -> f (Tuple (y :| xs))
-_head f (x :* xs) = (:* xs) <$> f x
-
-_tail :: Functor f =>
-         (Tuple xs -> f (Tuple ys)) ->
-         Tuple (x :| xs) -> f (Tuple (x :| ys))
-_tail f (x :* xs) = (x :*) <$> f xs
-
-tuple :: ( Functor f
-         , ITuple s
-         , ITuple t
-         ) => (Tuple (ListRep s) -> f (Tuple (ListRep t))) -> s -> f t
-tuple f = fmap fromTuple . f . toTuple
 
 uncons :: (a -> Tuple as -> r) -> Tuple (a :| as) -> r
 uncons f (a :* as) = f a as

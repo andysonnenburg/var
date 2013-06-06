@@ -46,7 +46,7 @@ instance ( MonadPrim m
          , ByteArrayList (ListRep t)
          ) => MTuple (ByteArrayTuple s) t m where
   thawTuple a = runPrim $ do
-    array <- newByteArray (byteSizeOf' (toTuple a))
+    array <- newByteArray (byteSizeOf' a)
     writeByteOff' array 0 (toTuple a)
     return $ ByteArrayTuple array
   freezeTuple (ByteArrayTuple array) = runPrim $ fromTuple <$> readByteOff' array 0
@@ -168,6 +168,9 @@ instance ( MonadPrim m
   read9 = unsafeRead offset9
   write9 = unsafeWrite offset9
 
+byteSizeOf' :: (ITuple t, ByteArrayList (ListRep t)) => t -> Int
+byteSizeOf' = plusByteSize' 0 . proxyListRep
+
 unsafeRead :: ( ByteArraySlice a
               , MonadPrim m
               ) => (forall f . f t -> Int) -> ByteArrayTuple (World m) t -> m a
@@ -262,6 +265,3 @@ instance (ByteArraySlice x, ByteArrayList xs) => ByteArrayList (x :| xs) where
   writeByteOff' array i (x :* xs) = do
     writeByteOff array i x
     writeByteOff' array (plusByteSize i (proxy x)) xs
-
-byteSizeOf' :: ByteArrayList xs => t xs -> Int
-byteSizeOf' = plusByteSize' 0

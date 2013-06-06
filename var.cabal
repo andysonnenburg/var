@@ -29,6 +29,7 @@ library
     Data.ByteArraySlice
     Data.ByteArraySlice.Unsafe
     Data.Tuple.ITuple
+    Data.Tuple.ITuple.Lens
     Data.Tuple.IO
     Data.Tuple.MTuple
     Data.Tuple.ST
@@ -75,6 +76,8 @@ library
     cpp-options: -DFEATURE_MultiParamDefaultSignatures
   if impl(ghc >= 7.4)
     cpp-options: -DFEATURE_TypeFamilyDefaults
+  if impl(ghc >= 7.4)
+    cpp-options: -DFEATURE_AssociatedTypeFamilyNonClassParameters
   if impl(ghc >= 7.2 && < 7.6)
     build-depends: ghc-prim
   if impl(ghc >= 7.6)
