@@ -56,20 +56,23 @@ instance ( ITuple t
   freezeTuple (StorableTuple ptr) =
     fmap fromTuple . withForeignPtr ptr $ flip peekByteOff' 0
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          ) => MField1 StorableTuple t IO where
   read1 = unsafeRead offset1
   write1 = unsafeWrite offset1
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          ) => MField2 StorableTuple t IO where
   read2 = unsafeRead offset2
   write2 = unsafeWrite offset2
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          , Storable (Field3 t)
@@ -77,7 +80,8 @@ instance ( MTuple StorableTuple t IO
   read3 = unsafeRead offset3
   write3 = unsafeWrite offset3
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          , Storable (Field3 t)
@@ -86,7 +90,8 @@ instance ( MTuple StorableTuple t IO
   read4 = unsafeRead offset4
   write4 = unsafeWrite offset4
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          , Storable (Field3 t)
@@ -96,7 +101,8 @@ instance ( MTuple StorableTuple t IO
   read5 = unsafeRead offset5
   write5 = unsafeWrite offset5
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          , Storable (Field3 t)
@@ -107,7 +113,8 @@ instance ( MTuple StorableTuple t IO
   read6 = unsafeRead offset6
   write6 = unsafeWrite offset6
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          , Storable (Field3 t)
@@ -119,7 +126,8 @@ instance ( MTuple StorableTuple t IO
   read7 = unsafeRead offset7
   write7 = unsafeWrite offset7
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          , Storable (Field3 t)
@@ -132,7 +140,8 @@ instance ( MTuple StorableTuple t IO
   read8 = unsafeRead offset8
   write8 = unsafeWrite offset8
 
-instance ( MTuple StorableTuple t IO
+instance ( ITuple t
+         , StorableList (ListRep t)
          , Storable (Field1 t)
          , Storable (Field2 t)
          , Storable (Field3 t)
