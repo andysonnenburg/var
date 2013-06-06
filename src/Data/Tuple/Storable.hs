@@ -164,9 +164,6 @@ touchStorableTuple = touchForeignPtr . unStorableTuple
 sizeOf' :: (ITuple t, StorableList (ListRep t)) => t -> Int
 sizeOf' = plusSize' 0 . proxyListRep
 
-proxyListRep :: ITuple t => t -> Proxy (ListRep t)
-proxyListRep _ = Proxy
-
 unsafeRead :: Storable a => (forall f . f t -> Int) -> StorableTuple t -> IO a
 unsafeRead offset t = m
   where
@@ -273,9 +270,3 @@ instance (Storable x, StorableList xs) => StorableList (x :| xs) where
   pokeByteOff' ptr i (x :* xs) = do
     pokeByteOff (castPtr ptr) (align i $ alignment x) x
     pokeByteOff' ptr (plusSize i (proxy x)) xs
-
-reproxyHead :: t (x :| xs) -> Proxy x
-reproxyHead = reproxy
-
-reproxyTail :: t (x :| xs) -> Proxy xs
-reproxyTail = reproxy

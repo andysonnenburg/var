@@ -28,8 +28,8 @@ import Control.Applicative
 import Control.Monad.Prim
 
 import Data.Prim.Array
-import Data.Proxy
 import Data.Tuple.ITuple
+import Data.Tuple.ITuple.Proxy
 import Data.Tuple.MTuple
 import Data.Typeable (Typeable)
 
@@ -125,9 +125,6 @@ instance ( MonadPrim m
 sizeOf :: (ITuple t, ArrayList (ListRep t)) => t -> Int
 sizeOf = size . proxyListRep
 
-proxyListRep :: ITuple t => t -> Proxy (ListRep t)
-proxyListRep _ = Proxy
-
 class ArrayList xs where
   size :: t xs -> Int
   readTuple :: MutableArray s Any -> Int -> Prim s (Tuple xs)
@@ -147,9 +144,6 @@ instance ArrayList xs => ArrayList (x :| xs) where
   writeTuple array i (x :* xs) = do
     writeArray array i (unsafeCoerce x)
     writeTuple array (i + 1) xs
-
-reproxyTail :: t (x :| xs) -> Proxy xs
-reproxyTail = reproxy
 
 unsafeRead :: MonadPrim m => Int -> ArrayTuple (World m) t -> m a
 unsafeRead i (ArrayTuple array) = runPrim $ unsafeCoerce <$> readArray array i

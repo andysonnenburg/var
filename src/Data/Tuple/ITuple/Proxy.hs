@@ -1,10 +1,18 @@
+{-# LANGUAGE CPP #-}
+#ifdef LANGUAGE_DataKinds
+{-# LANGUAGE DataKinds #-}
+#endif
+{-# LANGUAGE TypeOperators #-}
 {- |
 Copyright   :  (c) Andy Sonnenburg 2013
 License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.ITuple.Proxy
-       ( reproxyField1
+       ( proxyListRep
+       , reproxyHead
+       , reproxyTail
+       , reproxyField1
        , reproxyField2
        , reproxyField3
        , reproxyField4
@@ -16,6 +24,15 @@ module Data.Tuple.ITuple.Proxy
 
 import Data.Proxy
 import Data.Tuple.ITuple
+
+proxyListRep :: ITuple t => t -> Proxy (ListRep t)
+proxyListRep _ = Proxy
+
+reproxyHead :: t (x :| xs) -> Proxy x
+reproxyHead = reproxy
+
+reproxyTail :: t (x :| xs) -> Proxy xs
+reproxyTail = reproxy
 
 reproxyField1 :: t a -> Proxy (Field1 a)
 reproxyField1 = reproxy

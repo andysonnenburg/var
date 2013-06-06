@@ -265,9 +265,3 @@ instance (ByteArraySlice x, ByteArrayList xs) => ByteArrayList (x :| xs) where
 
 byteSizeOf' :: ByteArrayList xs => t xs -> Int
 byteSizeOf' = plusByteSize' 0
-
-reproxyHead :: t (x :| xs) -> Proxy x
-reproxyHead = reproxy
-
-reproxyTail :: t (x :| xs) -> Proxy xs
-reproxyTail = reproxy
