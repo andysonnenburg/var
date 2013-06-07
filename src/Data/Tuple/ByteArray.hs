@@ -1,9 +1,6 @@
-{-# LANGUAGE CPP #-}
-#ifdef LANGUAGE_DataKinds
-{-# LANGUAGE DataKinds #-}
-#endif
 {-# LANGUAGE
-    DefaultSignatures
+    CPP
+  , DefaultSignatures
   , DeriveDataTypeable
   , FlexibleInstances
   , FlexibleContexts
@@ -24,7 +21,6 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.ByteArray
        ( ByteArrayTuple
-       , ByteArrayList
        ) where
 
 import Control.Applicative
@@ -43,18 +39,18 @@ newtype ByteArrayTuple s a = ByteArrayTuple (MutableByteArray s) deriving (Eq, T
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          ) => MTuple (ByteArrayTuple s) t m where
   thawTuple a = runPrim $ do
     array <- newByteArray (byteSizeOf' a)
-    writeByteOff' array 0 (toTuple a)
+    writeByteOff array 0 (toTuple a)
     return $ ByteArrayTuple array
-  freezeTuple (ByteArrayTuple array) = runPrim $ fromTuple <$> readByteOff' array 0
+  freezeTuple (ByteArrayTuple array) = runPrim $ fromTuple <$> readByteOff array 0
 
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          ) => MField1 (ByteArrayTuple s) t m where
   read1 = unsafeRead offset1
@@ -63,7 +59,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          ) => MField2 (ByteArrayTuple s) t m where
@@ -73,7 +69,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -84,7 +80,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -96,7 +92,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -109,7 +105,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -123,7 +119,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -138,7 +134,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -154,7 +150,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -168,8 +164,8 @@ instance ( MonadPrim m
   read9 = unsafeRead offset9
   write9 = unsafeWrite offset9
 
-byteSizeOf' :: (ITuple t, ByteArrayList (ListRep t)) => t -> Int
-byteSizeOf' = plusByteSize' 0 . proxyListRep
+byteSizeOf' :: (ITuple t, ByteArraySlice (Tuple (ListRep t))) => t -> Int
+byteSizeOf' = plusByteSize 0 . proxyTuple
 
 unsafeRead :: ( ByteArraySlice a
               , MonadPrim m
@@ -245,23 +241,5 @@ offset9 :: ( ByteArraySlice (Field1 a)
            ) => t a -> Int
 offset9 a = plusByteSize (offset8 a) (reproxyField8 a)
 
-class ByteArrayList xs where
-  plusByteSize' :: Int -> t xs -> Int
-  readByteOff' :: MutableByteArray s -> Int -> Prim s (Tuple xs)
-  writeByteOff' :: MutableByteArray s -> Int -> Tuple xs -> Prim s ()
-
-instance ByteArrayList Nil where
-  plusByteSize' = const
-  readByteOff' _ _ = return U
-  writeByteOff' _ _ _ = return ()
-
-instance (ByteArraySlice x, ByteArrayList xs) => ByteArrayList (x :| xs) where
-  plusByteSize' i xs =
-    plusByteSize' (plusByteSize i (reproxyHead xs)) (reproxyTail xs)
-  readByteOff' array i = do
-    x <- readByteOff array i
-    xs <- readByteOff' array (plusByteSize i (proxy x))
-    return $ x :* xs
-  writeByteOff' array i (x :* xs) = do
-    writeByteOff array i x
-    writeByteOff' array (plusByteSize i (proxy x)) xs
+proxyTuple :: ITuple a => a -> Proxy (Tuple (ListRep a))
+proxyTuple _ = Proxy

@@ -1,7 +1,12 @@
+{-# LANGUAGE CPP #-}
+#ifdef LANGUAGE_DataKinds
+{-# LANGUAGE DataKinds #-}
+#endif
 {-# LANGUAGE
-    CPP
-  , DefaultSignatures
+    DefaultSignatures
   , FlexibleContexts
+  , FlexibleInstances
+  , GADTs
   , TypeOperators #-}
 #ifdef LANGUAGE_Unsafe
 {-# LANGUAGE Unsafe #-}
@@ -27,6 +32,7 @@ import qualified Data.ByteArrayElem.Unsafe as ByteArrayElem
 import Data.Int
 import Data.Prim.ByteArray
 import Data.Proxy
+import Data.Tuple.ITuple
 import Data.Word
 
 import GHC.Generics
@@ -334,3 +340,27 @@ instance ByteArraySlice (Ptr a) where
   {-# INLINE readByteOff #-}
   writeByteOff = ByteArrayElem.writeByteOffDefault
   {-# INLINE writeByteOff #-}
+
+instance ByteArraySlice (Tuple Nil) where
+  plusByteSize = const
+  readByteOff _ _ = return U
+  writeByteOff _ _ _ = return ()
+
+instance ( ByteArraySlice x
+         , ByteArraySlice (Tuple xs)
+         ) => ByteArraySlice (Tuple (x :| xs)) where
+  plusByteSize i xs =
+    plusByteSize (plusByteSize i (reproxyHead xs)) (reproxyTail xs)
+  readByteOff array i = do
+    x <- readByteOff array i
+    xs <- readByteOff array (plusByteSize i (proxy x))
+    return $ x :* xs
+  writeByteOff array i (x :* xs) = do
+    writeByteOff array i x
+    writeByteOff array (plusByteSize i (proxy x)) xs
+
+reproxyHead :: t (Tuple (x :| xs)) -> Proxy x
+reproxyHead = reproxy
+
+reproxyTail :: t (Tuple (x :| xs)) -> Proxy (Tuple xs)
+reproxyTail = reproxy

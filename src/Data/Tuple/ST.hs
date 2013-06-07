@@ -16,7 +16,6 @@ module Data.Tuple.ST
        , STTuple
        , ArrayList
        , STUTuple
-       , ByteArrayList
        ) where
 
 #ifdef MODULE_Control_Monad_ST_Safe
@@ -122,19 +121,19 @@ newtype STUTuple s a =
   STUTuple { unSTUTuple :: ByteArrayTuple s a
            } deriving (Eq, Typeable)
 
-instance (ITuple t, ByteArrayList (ListRep t)) => MTuple (STUTuple s) t (ST s) where
+instance (ITuple t, ByteArraySlice (Tuple (ListRep t))) => MTuple (STUTuple s) t (ST s) where
   thawTuple = fmap STUTuple . thawTuple
   freezeTuple = freezeTuple . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          ) => MField1 (STUTuple s) t (ST s) where
   read1 = read1 . unSTUTuple
   write1 = write1 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          ) => MField2 (STUTuple s) t (ST s) where
@@ -142,7 +141,7 @@ instance ( ITuple t
   write2 = write2 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -151,7 +150,7 @@ instance ( ITuple t
   write3 = write3 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -161,7 +160,7 @@ instance ( ITuple t
   write4 = write4 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -172,7 +171,7 @@ instance ( ITuple t
   write5 = write5 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -184,7 +183,7 @@ instance ( ITuple t
   write6 = write6 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -197,7 +196,7 @@ instance ( ITuple t
   write7 = write7 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -211,7 +210,7 @@ instance ( ITuple t
   write8 = write8 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -225,19 +224,19 @@ instance ( ITuple t
   read9 = read9 . unSTUTuple
   write9 = write9 . unSTUTuple
 
-instance (ITuple t, ByteArrayList (ListRep t)) => MTuple (STUTuple s) t (Lazy.ST s) where
+instance (ITuple t, ByteArraySlice (Tuple (ListRep t))) => MTuple (STUTuple s) t (Lazy.ST s) where
   thawTuple = fmap STUTuple . thawTuple
   freezeTuple = freezeTuple . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          ) => MField1 (STUTuple s) t (Lazy.ST s) where
   read1 = read1 . unSTUTuple
   write1 = write1 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          ) => MField2 (STUTuple s) t (Lazy.ST s) where
@@ -245,7 +244,7 @@ instance ( ITuple t
   write2 = write2 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -254,7 +253,7 @@ instance ( ITuple t
   write3 = write3 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -264,7 +263,7 @@ instance ( ITuple t
   write4 = write4 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -275,7 +274,7 @@ instance ( ITuple t
   write5 = write5 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -287,7 +286,7 @@ instance ( ITuple t
   write6 = write6 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -300,7 +299,7 @@ instance ( ITuple t
   write7 = write7 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -314,7 +313,7 @@ instance ( ITuple t
   write8 = write8 . unSTUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)

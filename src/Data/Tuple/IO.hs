@@ -16,7 +16,6 @@ module Data.Tuple.IO
        , IOTuple
        , ArrayList
        , IOUTuple
-       , ByteArrayList
        ) where
 
 #ifdef MODULE_Control_Monad_ST_Safe
@@ -80,19 +79,19 @@ newtype IOUTuple a =
   IOUTuple { unIOUTuple :: ByteArrayTuple RealWorld a
            } deriving (Eq, Typeable)
 
-instance (ITuple t, ByteArrayList (ListRep t)) => MTuple IOUTuple t IO where
+instance (ITuple t, ByteArraySlice (Tuple (ListRep t))) => MTuple IOUTuple t IO where
   thawTuple = fmap IOUTuple . thawTuple
   freezeTuple = freezeTuple . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          ) => MField1 IOUTuple t IO where
   read1 = read1 . unIOUTuple
   write1 = write1 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          ) => MField2 IOUTuple t IO where
@@ -100,7 +99,7 @@ instance ( ITuple t
   write2 = write2 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -109,7 +108,7 @@ instance ( ITuple t
   write3 = write3 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -119,7 +118,7 @@ instance ( ITuple t
   write4 = write4 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -130,7 +129,7 @@ instance ( ITuple t
   write5 = write5 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -142,7 +141,7 @@ instance ( ITuple t
   write6 = write6 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -155,7 +154,7 @@ instance ( ITuple t
   write7 = write7 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
@@ -169,7 +168,7 @@ instance ( ITuple t
   write8 = write8 . unIOUTuple
 
 instance ( ITuple t
-         , ByteArrayList (ListRep t)
+         , ByteArraySlice (Tuple (ListRep t))
          , ByteArraySlice (Field1 t)
          , ByteArraySlice (Field2 t)
          , ByteArraySlice (Field3 t)
