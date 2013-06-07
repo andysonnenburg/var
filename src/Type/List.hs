@@ -23,7 +23,6 @@ module Type.List
 
 import Type.Nat
 
-
 #ifdef LANGUAGE_DataKinds
 data List a = Nil | a :| List a
 #else
@@ -42,7 +41,7 @@ type family Concat (xs :: List *) (ys :: List *) :: List *
 type family Concat xs ys
 #endif
 type instance Concat Nil ys = ys
-type instance Concat (x:|xs) ys = x :| Concat xs ys
+type instance Concat (x :| xs) ys = x :| Concat xs ys
 
 #ifdef LANGUAGE_DataKinds
 #ifdef FEATURE_KindVariables
