@@ -21,7 +21,7 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.Array
        ( ArrayTuple
-       , ArrayList
+       , ArraySlice
        ) where
 
 import Control.Applicative
@@ -42,7 +42,7 @@ newtype ArrayTuple s a = ArrayTuple (MutableArray s Any) deriving (Eq, Typeable)
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MTuple (ArrayTuple s) t m where
   thawTuple a = runPrim $ do
     array <- newArray (sizeOf a) undefined
@@ -53,7 +53,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField1 (ArrayTuple s) t m where
   read1 = unsafeRead 0
   write1 = unsafeWrite 0
@@ -61,7 +61,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField2 (ArrayTuple s) t m where
   read2 = unsafeRead 1
   write2 = unsafeWrite 1
@@ -69,7 +69,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField3 (ArrayTuple s) t m where
   read3 = unsafeRead 2
   write3 = unsafeWrite 2
@@ -77,7 +77,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField4 (ArrayTuple s) t m where
   read4 = unsafeRead 3
   write4 = unsafeWrite 3
@@ -85,7 +85,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField5 (ArrayTuple s) t m where
   read5 = unsafeRead 4
   write5 = unsafeWrite 4
@@ -93,7 +93,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField6 (ArrayTuple s) t m where
   read6 = unsafeRead 5
   write6 = unsafeWrite 5
@@ -101,7 +101,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField7 (ArrayTuple s) t m where
   read7 = unsafeRead 6
   write7 = unsafeWrite 6
@@ -109,7 +109,7 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField8 (ArrayTuple s) t m where
   read8 = unsafeRead 7
   write8 = unsafeWrite 7
@@ -117,25 +117,25 @@ instance ( MonadPrim m
 instance ( MonadPrim m
          , s ~ World m
          , ITuple t
-         , ArrayList (ListRep t)
+         , ArraySlice (Tuple (ListRep t))
          ) => MField9 (ArrayTuple s) t m where
   read9 = unsafeRead 8
   write9 = unsafeWrite 8
 
-sizeOf :: (ITuple t, ArrayList (ListRep t)) => t -> Int
-sizeOf = size . proxyListRep
+sizeOf :: (ITuple t, ArraySlice (Tuple (ListRep t))) => t -> Int
+sizeOf = size . proxyTuple
 
-class ArrayList xs where
-  size :: t xs -> Int
-  readTuple :: MutableArray s Any -> Int -> Prim s (Tuple xs)
-  writeTuple :: MutableArray s Any -> Int -> Tuple xs -> Prim s ()
+class ArraySlice a where
+  size :: t a -> Int
+  readTuple :: MutableArray s Any -> Int -> Prim s a
+  writeTuple :: MutableArray s Any -> Int -> a -> Prim s ()
 
-instance ArrayList Nil where
+instance ArraySlice (Tuple Nil) where
   size _ = 0
   readTuple _ _ = return U
   writeTuple _ _ _ = return ()
 
-instance ArrayList xs => ArrayList (x :| xs) where
+instance ArraySlice (Tuple xs) => ArraySlice (Tuple (x :| xs)) where
   size xs = 1 + size (reproxyTail xs)
   readTuple array i = do
     x <- unsafeCoerce <$> readArray array i

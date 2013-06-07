@@ -262,7 +262,7 @@ instance StorableList Nil where
   pokeByteOff' _ _ _ = return ()
 
 instance (Storable x, StorableList xs) => StorableList (x :| xs) where
-  plusSize' i xs = plusSize' (plusSize i (reproxyHead xs)) (reproxyTail xs)
+  plusSize' i xs = plusSize' (plusSize i (reproxyHead' xs)) (reproxyTail' xs)
   peekByteOff' ptr i = do
     x <- let m = peekByteOff (castPtr ptr) (align i $ alignment' m) in m
     xs <- peekByteOff' ptr (plusSize i (proxy x))
@@ -270,3 +270,9 @@ instance (Storable x, StorableList xs) => StorableList (x :| xs) where
   pokeByteOff' ptr i (x :* xs) = do
     pokeByteOff (castPtr ptr) (align i $ alignment x) x
     pokeByteOff' ptr (plusSize i (proxy x)) xs
+
+reproxyHead' :: t (x :| xs) -> Proxy x
+reproxyHead' = reproxy
+
+reproxyTail' :: t (x :| xs) -> Proxy xs
+reproxyTail' = reproxy

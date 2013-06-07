@@ -13,6 +13,7 @@ import Control.Monad.ST
 import Criterion
 import Criterion.Main (defaultMain)
 
+import Data.ByteArraySlice
 import Data.Tuple.ITuple
 import Data.Tuple.ST
 import Data.Word
@@ -91,5 +92,5 @@ inlined n = runST $ do
     <*> read4 v
     <*> read5 v
 
-newSTUTuple :: (ITuple a, ByteArrayList (ListRep a)) => a -> ST s (STUTuple s a)
+newSTUTuple :: (ITuple a, ByteArraySlice (Tuple (ListRep a))) => a -> ST s (STUTuple s a)
 newSTUTuple = thawTuple

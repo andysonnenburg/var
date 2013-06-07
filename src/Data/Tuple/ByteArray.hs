@@ -28,7 +28,6 @@ import Control.Monad.Prim
 
 import Data.ByteArraySlice.Unsafe
 import Data.Prim.ByteArray
-import Data.Proxy
 import Data.Tuple.ITuple
 import Data.Tuple.ITuple.Proxy
 import Data.Tuple.MTuple
@@ -45,7 +44,8 @@ instance ( MonadPrim m
     array <- newByteArray (byteSizeOf' a)
     writeByteOff array 0 (toTuple a)
     return $ ByteArrayTuple array
-  freezeTuple (ByteArrayTuple array) = runPrim $ fromTuple <$> readByteOff array 0
+  freezeTuple (ByteArrayTuple array) =
+    runPrim $ fromTuple <$> readByteOff array 0
 
 instance ( MonadPrim m
          , s ~ World m
@@ -240,6 +240,3 @@ offset9 :: ( ByteArraySlice (Field1 a)
            , ByteArraySlice (Field8 a)
            ) => t a -> Int
 offset9 a = plusByteSize (offset8 a) (reproxyField8 a)
-
-proxyTuple :: ITuple a => a -> Proxy (Tuple (ListRep a))
-proxyTuple _ = Proxy

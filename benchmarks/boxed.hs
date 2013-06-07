@@ -85,7 +85,7 @@ tuples n = runST $ do
     <*> read6 v
     <*> read7 v
 
-newSTTuple :: (ITuple a, ArrayList (ListRep a)) => a -> ST s (STTuple s a)
+newSTTuple :: (ITuple a, ArraySlice (Tuple (ListRep a))) => a -> ST s (STTuple s a)
 newSTTuple = thawTuple
 
 arrays :: Int -> [(Int, Int, Int, Int, Int, Int, Int)]

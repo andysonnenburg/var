@@ -25,7 +25,10 @@ import Data.Typeable (Typeable)
 
 newtype ByteArrayVar s a = ByteArrayVar (MutableByteArray s) deriving (Eq, Typeable)
 
-instance (ByteArraySlice a, MonadPrim m, s ~ World m) => Var (ByteArrayVar s) a m where
+instance ( ByteArraySlice a
+         , MonadPrim m
+         , s ~ World m
+         ) => Var (ByteArrayVar s) a m where
   newVar a = runPrim $ do
     array <- newByteArray (byteSizeOf a)
     writeByteOff array 0 a

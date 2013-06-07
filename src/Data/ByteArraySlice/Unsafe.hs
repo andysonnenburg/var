@@ -33,6 +33,7 @@ import Data.Int
 import Data.Prim.ByteArray
 import Data.Proxy
 import Data.Tuple.ITuple
+import Data.Tuple.ITuple.Proxy
 import Data.Word
 
 import GHC.Generics
@@ -358,9 +359,3 @@ instance ( ByteArraySlice x
   writeByteOff array i (x :* xs) = do
     writeByteOff array i x
     writeByteOff array (plusByteSize i (proxy x)) xs
-
-reproxyHead :: t (Tuple (x :| xs)) -> Proxy x
-reproxyHead = reproxy
-
-reproxyTail :: t (Tuple (x :| xs)) -> Proxy (Tuple xs)
-reproxyTail = reproxy

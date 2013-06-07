@@ -14,7 +14,7 @@ Maintainer  :  andy22286@gmail.com
 module Data.Tuple.IO
        ( module Data.Tuple.MTuple
        , IOTuple
-       , ArrayList
+       , ArraySlice
        , IOUTuple
        ) where
 
@@ -35,43 +35,63 @@ newtype IOTuple a =
   IOTuple { unIOTuple :: ArrayTuple RealWorld a
           } deriving (Eq, Typeable)
 
-instance (ITuple t, ArrayList (ListRep t)) => MTuple IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MTuple IOTuple t IO where
   thawTuple = fmap IOTuple . thawTuple
   freezeTuple = freezeTuple . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField1 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField1 IOTuple t IO where
   read1 = read1 . unIOTuple
   write1 = write1 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField2 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField2 IOTuple t IO where
   read2 = read2 . unIOTuple
   write2 = write2 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField3 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField3 IOTuple t IO where
   read3 = read3 . unIOTuple
   write3 = write3 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField4 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField4 IOTuple t IO where
   read4 = read4 . unIOTuple
   write4 = write4 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField5 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField5 IOTuple t IO where
   read5 = read5 . unIOTuple
   write5 = write5 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField6 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField6 IOTuple t IO where
   read6 = read6 . unIOTuple
   write6 = write6 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField7 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField7 IOTuple t IO where
   read7 = read7 . unIOTuple
   write7 = write7 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField8 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField8 IOTuple t IO where
   read8 = read8 . unIOTuple
   write8 = write8 . unIOTuple
 
-instance (ITuple t, ArrayList (ListRep t)) => MField9 IOTuple t IO where
+instance ( ITuple t
+         , ArraySlice (Tuple (ListRep t))
+         ) => MField9 IOTuple t IO where
   read9 = read9 . unIOTuple
   write9 = write9 . unIOTuple
 
@@ -79,7 +99,9 @@ newtype IOUTuple a =
   IOUTuple { unIOUTuple :: ByteArrayTuple RealWorld a
            } deriving (Eq, Typeable)
 
-instance (ITuple t, ByteArraySlice (Tuple (ListRep t))) => MTuple IOUTuple t IO where
+instance ( ITuple t
+         , ByteArraySlice (Tuple (ListRep t))
+         ) => MTuple IOUTuple t IO where
   thawTuple = fmap IOUTuple . thawTuple
   freezeTuple = freezeTuple . unIOUTuple
 

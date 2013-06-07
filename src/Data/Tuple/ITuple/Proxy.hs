@@ -10,6 +10,7 @@ Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.ITuple.Proxy
        ( proxyListRep
+       , proxyTuple
        , reproxyHead
        , reproxyTail
        , reproxyField1
@@ -28,10 +29,13 @@ import Data.Tuple.ITuple
 proxyListRep :: ITuple t => t -> Proxy (ListRep t)
 proxyListRep _ = Proxy
 
-reproxyHead :: t (x :| xs) -> Proxy x
+proxyTuple :: ITuple t => t -> Proxy (Tuple (ListRep t))
+proxyTuple _ = Proxy
+
+reproxyHead :: t (Tuple (x :| xs)) -> Proxy x
 reproxyHead = reproxy
 
-reproxyTail :: t (x :| xs) -> Proxy xs
+reproxyTail :: t (Tuple (x :| xs)) -> Proxy (Tuple xs)
 reproxyTail = reproxy
 
 reproxyField1 :: t a -> Proxy (Field1 a)
