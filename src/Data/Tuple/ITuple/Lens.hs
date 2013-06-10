@@ -9,7 +9,8 @@ License     :  BSD3
 Maintainer  :  andy22286@gmail.com
 -}
 module Data.Tuple.ITuple.Lens
-       ( _1, _2, _3, _4, _5, _6, _7, _8, _9, tuple, _head, _tail
+       ( module Data.Tuple.ITuple
+       , _1, _2, _3, _4, _5, _6, _7, _8, _9, tuple, _head, _tail
        ) where
 
 import Control.Applicative

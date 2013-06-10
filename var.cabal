@@ -1,5 +1,5 @@
 name:                var
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Mutable variables and tuples
 description:
   This package defines the classes 'Var' and 'MTuple' of variables and tuples
